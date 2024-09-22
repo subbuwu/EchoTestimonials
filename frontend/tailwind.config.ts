@@ -12,6 +12,10 @@ const config: Config = {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      fontFamily: {
+        monasans: ['var(--font-monasans)'],
+        nohemiBold : ['var(--font-nohemiBold)']
+      }
     },
   },
   plugins: [],
