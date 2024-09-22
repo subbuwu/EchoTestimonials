@@ -1,16 +1,10 @@
 "use client"
 import React, { useState } from 'react'
 import { Menu, X, LogIn } from 'lucide-react'
-import { signIn } from 'next-auth/react'
 type Props = {}
 
 const Appbar = (props: Props) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-
-    const handleSignIn = () => {
-      // Trigger Google OAuth sign-in
-      signIn('google');
-    };
 
     return (
       <nav className="flex h-full bg-zinc-900 mx-auto bg-clip-padding backdrop-filter z-[100] backdrop-blur-sm bg-opacity-30 items-center md:px-16 px-6 justify-between py-6 border-b-2 border-zinc-800 sticky top-0 ">
@@ -20,7 +14,7 @@ const Appbar = (props: Props) => {
             
             {/* Desktop menu */}
             <div className="hidden md:flex items-center space-x-4">
-              <button onClickCapture={handleSignIn} className="bg-white text-gray-700 px-4 py-2 rounded-md font-bold border border-gray-300 transition duration-300 ease-in-out hover:bg-gray-300 hover:border-gray-400 flex items-center">
+              <button className="bg-white text-gray-700 px-4 py-2 rounded-md font-bold border border-gray-300 transition duration-300 ease-in-out hover:bg-gray-300 hover:border-gray-400 flex items-center">
                 <LogIn className="w-4 h-4 mr-2 text-gray-600" />
                 Login
               </button>
