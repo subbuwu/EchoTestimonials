@@ -1,10 +1,16 @@
-"use client"
 import Appbar from "@/components/Appbar";
+import { auth } from "@/auth"; // Function to fetch the session
+import UserAvatar from "@/components/UserAvatar";
 
-export default function Home() {
+export default async function Page() {
+  const session = await auth();
+  const isAuthenticated = !!session?.user; // Boolean: true if user is authenticated
+
   return (
-    <div className="font-monasans">
-      <Appbar/>
+    <div>
+      <Appbar isAuthenticated={isAuthenticated}>
+        <UserAvatar/>
+      </Appbar>
     </div>
   );
 }
