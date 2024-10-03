@@ -21,7 +21,7 @@ const monasans = localFont({
 const nohemiBold = localFont({
   src: [
     {
-      path: './fonts/Nohemi_Font/Nohemi-Bold-BF6438cc577b524.woff',
+      path: './fonts/Nohemi_Font/Nohemi-SemiBold-BF6438cc57db2ff.woff',
     },
   ],
   variable: '--font-nohemiBold'
