@@ -1,19 +1,21 @@
-import { auth } from "@/auth";
+"use client"
 
-export default async function UserAvatar() {
-  const session = await auth();  
+import React from "react";
 
-  if (!session?.user) {
-    return null; 
-  }
+type UserAvatarProps = {
+  image: string;
+};
 
+const UserAvatar: React.FC<UserAvatarProps> = ({ image }) => {
   return (
     <div>
       <img
-        src={session.user.image ?? ''} 
+        src={image}
         className="rounded-full h-[4rem] w-[4rem]"
         alt="User Avatar"
       />
     </div>
   );
-}
+};
+
+export default UserAvatar;

@@ -14,7 +14,8 @@ const config: Config = {
       },
       fontFamily: {
         monasans: ['var(--font-monasans)'],
-        nohemiBold : ['var(--font-nohemiBold)']
+        nohemiBold : ['var(--font-nohemiBold)'],
+        primary_regular : ['var(--font-primary_regular)'],
       }
     },
   },

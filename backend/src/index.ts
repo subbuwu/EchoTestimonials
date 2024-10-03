@@ -1,15 +1,39 @@
-import express, { Request, Response } from 'express';
+import express, { Application } from 'express';
+import cors from './middlewares/cors';
+import authRoutes from './routes/authRoutes';
+import userRoutes from './routes/userRoutes';
+import { checkDBConnection } from './config/dbConnection';
+import dotenv from "dotenv";
 
-const app = express();
-const PORT = process.env.PORT || 8000;
+dotenv.config();
+const app: Application = express();
 
-// Middleware to parse JSON
+
+//Global Middlewares
 app.use(express.json());
+app.use(cors);
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Hello, Express with TypeScript!');
-});
+//Routes
+app.use('/auth', authRoutes);
+app.use('/users', userRoutes);
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+// init server
+const startServer = async () => {
+    try {
+      const isDatabaseConnected = await checkDBConnection();
+      if (!isDatabaseConnected) {
+        console.error('Server startup aborted due to database connection failure');
+        process.exit(1);
+      }
+  
+      const PORT = process.env.PORT || 8000;
+      app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+      });
+    } catch (error) {
+      console.error('Failed to start server:', error);
+      process.exit(1);
+    }
+  };
+  
+  startServer();

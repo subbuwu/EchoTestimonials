@@ -8,6 +8,13 @@
       "when": 1726728785658,
       "tag": "0000_romantic_lady_mastermind",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1727872127754,
+      "tag": "0001_crazy_hawkeye",
+      "breakpoints": true
     }
   ]
 }
