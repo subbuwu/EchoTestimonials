@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { OAuth2Client } from 'google-auth-library';
 import { generateJWT } from '../utils/jwt';
 import { db } from '../db';
 import { usersTable } from '../db/schema';

@@ -57,7 +57,7 @@ export default function AnimatedLandingContent() {
       >
         <LandingHero />
       </motion.div>
-      <motion.div className="mt-40" variants={staggerChildren}>
+      <motion.div className="mt-28 lg:mt-40 lg:px-0 px-4" variants={staggerChildren}>
         <motion.h2
           className="text-white mx-auto max-w-7xl font-primary_regular font-medium text-6xl"
           variants={childVariants}

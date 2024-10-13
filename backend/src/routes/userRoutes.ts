@@ -4,7 +4,7 @@ import { verifyToken } from '../middlewares/verifyToken';
 
 const router = Router();
 
-// Endpoint to retrieve all users
-router.get('/',verifyToken, getAllUsers);
+// // Endpoint to retrieve all users
+// router.get('/',verifyToken, getAllUsers);
 
 export default router;
