@@ -15,6 +15,13 @@
       "when": 1727872127754,
       "tag": "0001_crazy_hawkeye",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1728823573005,
+      "tag": "0002_optimal_aqueduct",
+      "breakpoints": true
     }
   ]
 }

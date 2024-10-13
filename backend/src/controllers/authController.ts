@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { generateJWT } from '../utils/jwt';
 import { db } from '../db';
-import { usersTable } from '../db/schema';
+import { users } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import oauth2Client from '../config/googleClient';
 
@@ -30,11 +30,11 @@ export const googleAuth = async (req: Request, res: Response) => {
       return res.status(400).json({ errorMessage: 'Email not found in token' });
     }
 
-    let user: any = await db.select().from(usersTable).where(eq(usersTable.email, email));
+    let user: any = await db.select().from(users).where(eq(users.email, email));
     let userId;
 
     if (!user || user.length === 0) {
-      const insertedUser = await db.insert(usersTable).values({ name, email }).returning({ userId: usersTable.id });
+      const insertedUser = await db.insert(users).values({ name, email }).returning({ userId: users.userId });
       userId = insertedUser[0]?.userId;
       user = { userId, name, email };
     } else {
