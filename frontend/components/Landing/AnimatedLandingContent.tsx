@@ -1,8 +1,10 @@
 'use client';
 import React from "react";
 import { motion } from "framer-motion";
-import LandingHero from "../components/LandingHero";
-import LandingFeatures from "../components/LandingFeatures";
+import LandingHero from "./LandingHero";
+import LandingFeatures from "./LandingFeatures";
+import { ShiningCardSection } from "./ShiningCardSection";
+import Footer from "./Footer";
 
 const pageVariants = {
   initial: {
@@ -66,6 +68,10 @@ export default function AnimatedLandingContent() {
           <LandingFeatures />
         </motion.div>
       </motion.div>
+      <motion.div>
+        <ShiningCardSection/>
+      </motion.div>
+      <Footer/>
     </motion.div>
   );
 }

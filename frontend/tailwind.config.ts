@@ -72,11 +72,41 @@ const config: Config = {
   				'50%': {
   					opacity: '0'
   				}
+  			},
+  			shine: {
+  				'0%': {
+  					'background-position': '0% 0%'
+  				},
+  				'50%': {
+  					'background-position': '100% 100%'
+  				},
+  				to: {
+  					'background-position': '0% 0%'
+  				}
+  			},
+  			'background-position-spin': {
+  				'0%': {
+  					backgroundPosition: 'top center'
+  				},
+  				'100%': {
+  					backgroundPosition: 'bottom center'
+  				}
+  			},
+  			pulse: {
+  				'0%, 100%': {
+  					boxShadow: '0 0 0 0 var(--pulse-color)'
+  				},
+  				'50%': {
+  					boxShadow: '0 0 0 8px var(--pulse-color)'
+  				}
   			}
   		},
   		animation: {
   			typewriter: 'typewriter 2s steps(10) 1s forwards',
-  			'blink-cursor': 'blink 1s infinite'
+  			'blink-cursor': 'blink 1s infinite',
+  			shine: 'shine var(--duration) infinite linear',
+  			'background-position-spin': 'background-position-spin 3000ms infinite alternate',
+  			pulse: 'pulse var(--duration) ease-out infinite'
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
