@@ -56,7 +56,7 @@ const Appbar = ({ isAuthenticated, user }: AppbarProps) => {
     <nav className="font-primary_regular flex h-full bg-zinc-900 bg-clip-padding backdrop-filter z-[100] backdrop-blur-sm bg-opacity-30 items-center md:px-16 px-6 justify-between py-6 border-b-2 border-zinc-800 sticky top-0">
       <div className="container mx-auto">
         <div className="flex items-center justify-between">
-          <div className="text-[#FFFFFF] font-bold font-nohemiBold text-2xl lg:text-4xl">
+          <div className="text-[#FFFFFF] font-bold font-nohemiBold text-3xl lg:text-4xl">
             EchoTestimonials
           </div>
 
@@ -69,7 +69,7 @@ const Appbar = ({ isAuthenticated, user }: AppbarProps) => {
                 className="bg-white text-gray-700 px-4 py-2 rounded-md font-bold border border-gray-300 transition duration-300 ease-in-out hover:bg-gray-300 hover:border-gray-400 flex items-center"
               >
                 <LogIn className="w-4 h-4 mr-2 text-gray-600" />
-                Signup
+                Login
               </button>
             )}
           </div>

@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 import { db } from '../db';
-import { usersTable } from '../db/schema';
+import { users } from '../db/schema';
 
 // Endpoint to retrieve all users
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
-    const allUsers = await db.select().from(usersTable);
+    const allUsers = await db.select().from(users);
     res.json({ allUsers });
   } catch (error) {
     console.error('Error fetching users:', error);

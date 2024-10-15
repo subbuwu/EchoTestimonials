@@ -1,13 +1,16 @@
 "use client"
 import { ArrowRight } from 'lucide-react'
+import { signIn } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 
-const LandingHero = () => {
+const LandingHero = ({isAuthenticated} : {isAuthenticated : boolean}) => {
+    const router = useRouter();
     const words = ["Dazzle", "Amaze", "Analyze"];
     const [displayText, setDisplayText] = useState('');
     const [wordIndex, setWordIndex] = useState(0);
     const [isDeleting, setIsDeleting] = useState(false);
-
+    
     useEffect(() => {
         let timer;
         const currentWord = words[wordIndex];
@@ -34,6 +37,14 @@ const LandingHero = () => {
         return () => clearTimeout(timer);
     }, [displayText, isDeleting, wordIndex, words]);
 
+    const handleGetStartedClick = () => {
+        if(isAuthenticated){
+            router.push('/dashboard')
+        } else {
+            signIn('google')
+        }
+    }
+        
     return (
         <div className="flex gap-8 font-primary_regular lg:px-0 px-4 flex-col text-white">
             <h1 className="text-[42px] leading-[42px] lg:text-[88px] lg:leading-[90px] flex flex-col gap-2 font-nohemiBold">
@@ -53,12 +64,10 @@ const LandingHero = () => {
                 Boost your social proof and convert more leads with authentic feedback.
             </h2>
             <div className="flex gap-4 items-center justify-start">
-                <a href="#" className="flex">
-                    <button className="bg-blue-500 hover:bg-blue-600 transition-colors px-6 py-3 rounded-[10px] flex flex-row gap-2 items-center text-[18px] leading-[22px]">
-                        Get Started
+                    <button onClick={handleGetStartedClick} className="bg-blue-500 hover:bg-blue-600 transition-colors px-6 py-3 rounded-[10px] flex flex-row gap-2 items-center text-[18px] leading-[22px]">
+                        {!isAuthenticated ? "Get Started" : "Go To Dashboard"}
                         <ArrowRight />
                     </button>
-                </a>
             </div>
         </div>
     )

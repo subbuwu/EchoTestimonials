@@ -44,7 +44,7 @@ const childVariants = {
   },
 };
 
-export default function AnimatedLandingContent() {
+export default function AnimatedLandingContent({isAuthenticated} :{isAuthenticated : boolean}) {
   return (
     <motion.div
       initial="initial"
@@ -55,7 +55,7 @@ export default function AnimatedLandingContent() {
         className="flex justify-center w-full items-center mt-10"
         variants={childVariants}
       >
-        <LandingHero />
+        <LandingHero isAuthenticated={isAuthenticated}/>
       </motion.div>
       <motion.div className="mt-28 lg:mt-40 lg:px-0 px-4" variants={staggerChildren}>
         <motion.h2

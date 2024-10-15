@@ -9,7 +9,7 @@ export default async function Page() {
   return (
     <div>
       <Appbar isAuthenticated={isAuthenticated} user={session?.user} />
-      <AnimatedLandingContent />
+      <AnimatedLandingContent isAuthenticated={isAuthenticated}/>
     </div>
   );
 }
