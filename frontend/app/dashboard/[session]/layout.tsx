@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 export default async function DashboardLayout({
     children, 
     params
@@ -12,11 +13,10 @@ export default async function DashboardLayout({
     params.session = session ?? {}
     console.log(session)
     
+    
     if(!session){
-        return <>loading..</>
+        redirect('/');
     }
-
-
     return (
       <section className="bg-[#171717] min-h-screen text-[#FFFFFF] font-primary_regular">
         {children}

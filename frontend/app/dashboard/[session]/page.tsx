@@ -3,10 +3,12 @@ import React from "react"
 import { Menu, X, LayoutDashboard, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import Image from "next/image"
 
 export default function Dashboard({params} : {params : { session : any }}) {
   const [sidebarOpen, setSidebarOpen] = React.useState(false)
   const userImage = params.session?.user?.image
+
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
@@ -55,14 +57,20 @@ export default function Dashboard({params} : {params : { session : any }}) {
           <h1 className="text-xl font-semibold lg:hidden">Dashboard</h1>
           <div className="ml-auto lg:block hidden" />
 
-          <div className="ml-auto pr-20">
-            <img src={userImage} className="w-5 h-5 rounded-full" />
+          <div className="ml-auto  lg:pr-20">
+          <Image 
+              width={32} 
+              height={32} 
+              alt="profile_image" 
+              src={userImage} 
+              className="w-8 h-8 rounded-full"
+            />
           </div> 
         </header>
 
         {/* Dashboard Content */}
         <ScrollArea className="flex-1 p-4 lg:p-6">
-          <h2 className="text-2xl font-medium mb-4">Good to see you! Let’s get things rolling</h2>
+          <h2 className="text-2xl font-medium mb-4">Good to see you! Let’s get things rolling :)</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             
           </div>
