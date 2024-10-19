@@ -41,7 +41,7 @@ const LandingHero = ({isAuthenticated} : {isAuthenticated : boolean}) => {
         if(isAuthenticated){
             router.push('/dashboard')
         } else {
-            signIn('google')
+            signIn('google',{redirectTo: "/dashboard"})
         }
     }
         

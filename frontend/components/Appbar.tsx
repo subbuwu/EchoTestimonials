@@ -65,7 +65,7 @@ const Appbar = ({ isAuthenticated, user }: AppbarProps) => {
               <AuthenticatedView />
             ) : (
               <button
-                onClick={() => signIn("google")}
+                onClick={() => signIn("google",{ redirectTo : "/dashboard" })}
                 className="bg-white text-gray-700 px-4 py-2 rounded-md font-bold border border-gray-300 transition duration-300 ease-in-out hover:bg-gray-300 hover:border-gray-400 flex items-center"
               >
                 <LogIn className="w-4 h-4 mr-2 text-gray-600" />
@@ -109,7 +109,7 @@ const Appbar = ({ isAuthenticated, user }: AppbarProps) => {
     </div>
   ) : (
     <button
-      onClick={() => signIn("google")}
+    onClick={() => signIn("google",{ redirectTo : "/dashboard" })}
       className="block w-full text-left bg-white text-gray-700 px-4 py-2 rounded-md font-medium border border-gray-300 transition duration-300 ease-in-out hover:bg-gray-100 hover:border-gray-400"
     >
       <LogIn className="w-4 h-4 inline mr-2 text-gray-600" />

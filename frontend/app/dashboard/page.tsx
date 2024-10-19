@@ -1,13 +1,23 @@
 "use client"
 import React from "react"
-import { Menu, X, LayoutDashboard, Settings } from "lucide-react"
+import { Menu, X, LayoutDashboard, Settings, User, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { signOut, useSession } from "next-auth/react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import Image from "next/image"
 
-export default function Dashboard({params} : {params : { session : any }}) {
+export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = React.useState(false)
-  const userImage = params.session?.user?.image
+  const { data: session } = useSession()
+
 
   return (
     <div className="flex h-screen">
@@ -19,7 +29,7 @@ export default function Dashboard({params} : {params : { session : any }}) {
           lg:translate-x-0 lg:relative border-r
         `}
       >
-        <div className="flex h-12 items-center justify-end lg:justify-between px-4 border-[#2e2e2e] border-b">
+        <div className="flex h-14 items-center justify-end lg:justify-between px-4 border-[#2e2e2e] border-b">
           <h1 className="text-xl font-semibold lg:block hidden">Dashboard</h1>
           <Button
             variant="ghost"
@@ -45,7 +55,7 @@ export default function Dashboard({params} : {params : { session : any }}) {
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden bg-[#171717]">
         {/* Header */}
-        <header className="flex h-12 items-center justify-between border-[#2e2e2e] border-b px-4 lg:px-6">
+        <header className="flex h-14 items-center justify-between border-[#2e2e2e] border-b px-4 lg:px-6">
           <Button
             variant="ghost"
             size="icon"
@@ -57,20 +67,36 @@ export default function Dashboard({params} : {params : { session : any }}) {
           <h1 className="text-xl font-semibold lg:hidden">Dashboard</h1>
           <div className="ml-auto lg:block hidden" />
 
-          <div className="ml-auto  lg:pr-20">
-          <Image 
-              width={32} 
-              height={32} 
-              alt="profile_image" 
-              src={userImage} 
-              className="w-8 h-8 rounded-full"
-            />
-          </div> 
+          <div className="ml-auto lg:pr-20">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Image
+                  width={44}
+                  height={44}
+                  alt="profile_image"
+                  src={session?.user?.image ?? ''}
+                  className="rounded-full border p-0.5 cursor-pointer"
+                />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer"> 
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => signOut()}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </header>
 
         {/* Dashboard Content */}
         <ScrollArea className="flex-1 p-4 lg:p-6">
-          <h2 className="text-2xl font-medium mb-4">Good to see you! Let’s get things rolling :)</h2>
+          <h2 className="text-2xl font-medium mb-4">Good to see you! Let’s get things rolling :</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             
           </div>

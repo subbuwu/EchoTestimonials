@@ -47,9 +47,11 @@ const config: NextAuthConfig = {
     async session({ session, token }) {
       if (token.customToken) {
         session.customToken = token.customToken as string;
+        
       }
       return session;
     },
+    
   },
 }
 
