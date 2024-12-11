@@ -47,8 +47,8 @@ const LandingHero = ({isAuthenticated} : {isAuthenticated : boolean}) => {
         
     return (
         <div className="flex gap-8 font-primary_regular lg:px-0 px-4 flex-col text-white">
-            <h1 className="text-[42px] leading-[42px] lg:text-[88px] lg:leading-[90px] flex flex-col gap-2 font-nohemiBold">
-                <div className="flex flex-col lg:flex-row gap-2 lg:gap-8 items-start lg:items-center font-medium">
+            <h1 className="text-[42px] leading-[42px] lg:text-[88px] lg:leading-[90px] flex flex-col gap-2 font-nohemiBold text-center lg:text-left">
+                <div className="flex flex-col lg:flex-row gap-2 lg:gap-8 items-center font-medium">
                     <span>Testimonials That</span>
                     <div className="relative overflow-hidden p-2 lg:py-3 lg:px-6 rounded-[20px] border-2 border-blue-400 min-w-[300px] lg:min-w-[450px]">
                         <div className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-600">

@@ -15,9 +15,21 @@ export const getAllUsers = async (req: Request, res: Response) => {
 };
 
 export const getAllSpacesByUser = async (req: Request, res: Response) => {
+
   try {
-    const currentUserId = req.params.userId;
-    const allSpaces = await db.select().from(spaces).where(eq(spaces.userId, Number(currentUserId)));
+    const { userId : curUserId,email : curUserEmail } = req.query
+    
+    if(curUserEmail != req.user.email) {
+      console.log('cur email : ',curUserEmail)
+      console.log('',req.user.email)
+      res.json({
+        message : 'Unauthorized',
+      })
+      return;
+    }
+
+    const allSpaces = await db.select().from(spaces).where(eq(spaces.userId, Number(curUserId)));
+
     res.json({
       message: 'Success',
       userSpace: allSpaces

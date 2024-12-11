@@ -1,11 +1,10 @@
 import { Request, Response } from 'express';
-import { generateJWT } from '../utils/jwt';
+import { generateTokens, verifyToken } from '../utils/jwt';
 import { db } from '../db';
 import { users } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import oauth2Client from '../config/googleClient';
 
-// Google authentication and JWT generation
 export const googleAuth = async (req: Request, res: Response) => {
   const { token } = req.body;
 
@@ -30,21 +29,32 @@ export const googleAuth = async (req: Request, res: Response) => {
       return res.status(400).json({ errorMessage: 'Email not found in token' });
     }
 
-    let user: any = await db.select().from(users).where(eq(users.email, email));
-    let userId;
+    let user = await db.select().from(users).where(eq(users.email, email))
+
 
     if (!user || user.length === 0) {
-      const insertedUser = await db.insert(users).values({ name, email }).returning({ userId: users.userId });
-      userId = insertedUser[0]?.userId;
-      user = { userId, name, email };
-    } else {
-      userId = user[0].id;
-    }
+      const { accessToken } = generateTokens({ sub, email, name });
+      const insertedUser = await db.insert(users).values({ name, email }).returning()
+      user = insertedUser;
 
-    const customToken = generateJWT({ userId, email, name, pictureUrl });
-    res.json({ message: 'Success', token: customToken, user: { userId, email, name, pictureUrl } });
+      res.json({
+        message: 'User created',
+        accessToken,
+        user: { userId: user[0].userId, email, name, pictureUrl }
+      });
+    } else {
+      
+      const { accessToken } = generateTokens({ userId: user[0].userId, email, name });
+
+      res.json({
+        message: 'Success',
+        accessToken,
+        user: { userId: user[0].userId, email, name, pictureUrl }
+      });
+    }
   } catch (error) {
     console.error('Token verification error:', error);
     res.status(401).json({ errorMessage: 'Unauthorized' });
   }
 };
+

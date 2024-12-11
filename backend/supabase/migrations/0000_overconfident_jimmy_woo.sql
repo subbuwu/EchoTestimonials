@@ -30,13 +30,6 @@ CREATE TABLE IF NOT EXISTS "spaces" (
 	CONSTRAINT "spaces_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "tags" (
-	"tag_id" serial PRIMARY KEY NOT NULL,
-	"space_id" integer NOT NULL,
-	"name" varchar(50) NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now()
-);
---> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "testimonial_responses" (
 	"response_id" serial PRIMARY KEY NOT NULL,
 	"testimonial_id" integer NOT NULL,
@@ -56,11 +49,15 @@ CREATE TABLE IF NOT EXISTS "user_testimonials" (
 	"updated_at" timestamp with time zone DEFAULT now()
 );
 --> statement-breakpoint
-ALTER TABLE "users" ALTER COLUMN "email" SET NOT NULL;--> statement-breakpoint
-ALTER TABLE "users" ADD COLUMN "user_id" serial PRIMARY KEY NOT NULL;--> statement-breakpoint
-ALTER TABLE "users" ADD COLUMN "full_name" varchar(100);--> statement-breakpoint
-ALTER TABLE "users" ADD COLUMN "created_at" timestamp with time zone DEFAULT now();--> statement-breakpoint
-ALTER TABLE "users" ADD COLUMN "last_login" timestamp with time zone;--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "users" (
+	"user_id" serial PRIMARY KEY NOT NULL,
+	"email" varchar(255) NOT NULL,
+	"full_name" varchar(100),
+	"created_at" timestamp with time zone DEFAULT now(),
+	"last_login" timestamp with time zone,
+	CONSTRAINT "users_email_unique" UNIQUE("email")
+);
+--> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "feedback_forms" ADD CONSTRAINT "feedback_forms_space_id_spaces_space_id_fk" FOREIGN KEY ("space_id") REFERENCES "public"."spaces"("space_id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
@@ -75,12 +72,6 @@ END $$;
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "spaces" ADD CONSTRAINT "spaces_user_id_users_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("user_id") ON DELETE no action ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "tags" ADD CONSTRAINT "tags_space_id_spaces_space_id_fk" FOREIGN KEY ("space_id") REFERENCES "public"."spaces"("space_id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
@@ -102,7 +93,3 @@ DO $$ BEGIN
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
---> statement-breakpoint
-ALTER TABLE "users" DROP COLUMN IF EXISTS "id";--> statement-breakpoint
-ALTER TABLE "users" DROP COLUMN IF EXISTS "name";--> statement-breakpoint
-ALTER TABLE "users" ADD CONSTRAINT "users_email_unique" UNIQUE("email");

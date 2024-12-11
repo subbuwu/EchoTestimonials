@@ -5,7 +5,7 @@ export const users = pgTable('users', {
   email: varchar('email', { length: 255 }).notNull().unique(),
   name: varchar('full_name', { length: 100 }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
-  lastLogin: timestamp('last_login', { withTimezone: true })
+  lastLogin: timestamp('last_login', { withTimezone: true }),
 });
 
 export const spaces = pgTable('spaces', {
@@ -57,19 +57,3 @@ export const testimonialResponses = pgTable('testimonial_responses', {
   responseText: text('response_text'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
 });
-
-export const tags = pgTable('tags', {
-  tagId: serial('tag_id').primaryKey(),
-  spaceId: integer('space_id').notNull().references(() => spaces.spaceId),
-  name: varchar('name', { length: 50 }).notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
-});
-
-// export const testimonialTags = pgTable('testimonial_tags', {
-//   testimonialId: integer('testimonial_id').notNull().references(() => testimonials.testimonialId),
-//   tagId: integer('tag_id').notNull().references(() => tags.tagId),
-// }, (table) => {
-//   return {
-//     pk: primaryKey({ columns: [table.testimonialId, table.tagId] })
-//   }
-// });

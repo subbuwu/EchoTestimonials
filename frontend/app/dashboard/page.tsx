@@ -13,12 +13,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import Image from "next/image"
+import { SpacesGrid } from "@/components/Dashboard/SpacesGrid"
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = React.useState(false)
   const { data: session } = useSession()
 
-
+  
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
@@ -96,10 +97,8 @@ export default function Dashboard() {
 
         {/* Dashboard Content */}
         <ScrollArea className="flex-1 p-4 lg:p-6">
-          <h2 className="text-2xl font-medium mb-4">Good to see you! Let’s get things rolling :</h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            
-          </div>
+          <h2 className="text-3xl font-medium mb-4">Good to see you! Let’s get things rolling :</h2>
+          <SpacesGrid />
         </ScrollArea>
       </div>
     </div>
