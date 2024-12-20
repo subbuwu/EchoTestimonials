@@ -93,11 +93,11 @@ export function SpacesGrid() {
 
   // Spaces grid
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mt-12">
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 mt-12">
       {spaces?.map((space) => (
         <div 
           key={space.spaceId} 
-          className="bg-[#1e1e1e] hover:cursor-pointer rounded-lg p-4 border border-[#2e2e2e] hover:border-[#505050] transition-colors duration-300"
+          className="bg-[#1e1e1e] rounded-lg p-4 border border-[#2e2e2e] hover:border-[#505050] transition-colors duration-300"
         >
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-lg font-semibold text-[#FFFFFF] truncate">
@@ -111,7 +111,7 @@ export function SpacesGrid() {
             {space.description}
           </p>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-[#989898] underline">
+            <span className="text-sm hover:cursor-text text-[#989898] underline">
               slug: {space.slug}
             </span>
             <div className="flex space-x-2">
@@ -138,21 +138,10 @@ export function SpacesGrid() {
         </div>
       ))}
       <div 
-        className="bg-[#1e1e1e] rounded-lg p-4 border border-[#2e2e2e] border-dashed flex items-center justify-center hover:border-[#4a4a4a] transition-colors duration-300"
+        className="bg-[#1e1e1e] rounded-lg p-4 border border-[#2e2e2e] border-dashed flex items-center hover:cursor-pointer justify-center hover:border-[#4a4a4a] transition-colors duration-300"
       >
-        <Button 
-          variant="ghost" 
-          className="text-[#8a8a8a] hover:bg-transparent hover:scale-105 duration-150 hover:text-[#FFFFFF]"
-        //   onClick={() => addSpace({
-        //     name: 'New Zone',
-        //     slug: 'new-zone',
-        //     description: 'Your new workspace',
-        //     userId: session?.user.userId ?? 0
-        //   })}
-        >
           <Plus className="mr-2 h-4 w-4" />
           Create New Zone
-        </Button>
       </div>
     </div>
   )

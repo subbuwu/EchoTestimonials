@@ -2,7 +2,6 @@ import { api } from "@/lib/axios"
 
 export const getUserDashboradSpaces = async( { userId , email,accessToken} : { userId : string , email : string,accessToken: string} ) => {
     try {
-        console.log(api)
         const res = await api.get(`/users/spaces`, {
             params : {
                 email,
