@@ -16,12 +16,12 @@ export default async function DashboardLayout({
 
   return (
     <SessionProvider refetchOnWindowFocus={false}>
-      <div className="flex lg:flex-row flex-col">
-        <Sidebar/>
-        <section className="bg-[#171717] flex-1 min-h-screen text-[#FFFFFF] font-primary_regular">
+      <div className="bg-[#171717] flex min-h-screen text-[#FFFFFF] font-primary_regular">
+        <Sidebar />
+        <main className="flex-1 overflow-y-auto p-8">
           {children}
-        </section>
-      </div>
+        </main>
+    </div>
     </SessionProvider>
   )
 }

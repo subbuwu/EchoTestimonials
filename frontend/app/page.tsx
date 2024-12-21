@@ -7,9 +7,9 @@ export default async function Page() {
   const isAuthenticated = !!session?.user;
 
   return (
-    <div>
-      <Appbar isAuthenticated={isAuthenticated} user={session?.user} />
-      <AnimatedLandingContent isAuthenticated={isAuthenticated}/>
-    </div>
+    <>
+        <Appbar isAuthenticated={isAuthenticated} user={session?.user} />
+        <AnimatedLandingContent isAuthenticated={isAuthenticated}/>
+       </>
   );
 }

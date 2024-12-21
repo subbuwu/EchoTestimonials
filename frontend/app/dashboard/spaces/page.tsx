@@ -1,7 +1,6 @@
 "use client"
 import React from "react"
 import { ScrollArea } from "@/components/ui/scroll-area"
-
 import { SpacesGrid } from "@/components/Dashboard/SpacesGrid"
 import UserMenu from "@/components/UserMenu"
 
@@ -14,7 +13,9 @@ export default function Dashboard() {
 
         {/* Dashboard Content */}
         <ScrollArea className="flex-1 p-4 lg:p-6">
-          <UserMenu/>
+          <div className="xl:flex hidden justify-end items-center">
+            <UserMenu/>
+          </div>
           <h2 className="text-3xl font-medium mb-4">Good to see you! Let’s get things rolling :</h2>
           <SpacesGrid />
         </ScrollArea>

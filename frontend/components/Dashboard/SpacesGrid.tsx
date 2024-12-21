@@ -1,34 +1,19 @@
 'use client'
-
-import React, { useEffect } from 'react'
+import React from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from "@/components/ui/button"
-import { useSpacesStore } from '@/store/spacesStore'
-import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import { useSpaces } from '@/hooks/useSpaces'
 
 export function SpacesGrid() {
-  const { data : session } = useSession()
-
-  const { 
-    spaces, 
-    isLoading, 
-    error, 
-    fetchSpaces, 
-    // addSpace, 
-    // updateExistingSpace, 
-    // removeSpace 
-  } = useSpacesStore()
-
-  useEffect(() => {
-    if (session?.user) {
-      fetchSpaces({ 
-        userId: session.user.userId ?? '', 
-        email: session.user.email ?? '' ,
-        accessToken : session.accessToken ?? ''
-      })
-    }
-    // TODO : ADD REFETCH LOGIC AFTER EDITING / UPDATING / ADDING
-  }, [session])
+  const router = useRouter();
+  const {
+    spaces,
+    isLoading,
+    error,
+    deleteSpace,
+    isDeleting
+  } = useSpaces();
 
   if (isLoading) {
     return (
@@ -41,11 +26,10 @@ export function SpacesGrid() {
   if (error) {
     return (
       <div className="bg-red-500/10 p-4 rounded-lg text-red-500">
-        {error}
+        {error.message}
       </div>
     )
   }
-
 
   // Empty state
   if (!isLoading && spaces?.length === 0) {
@@ -76,13 +60,7 @@ export function SpacesGrid() {
         <Button 
           variant="outline" 
           className="bg-transparent border-[#4a4a4a] text-[#FFFFFF] hover:bg-[#2e2e2e]"
-        //   onClick={() => addSpace({
-        //     // Provide necessary default values
-        //     name: 'New Zone',
-        //     slug: 'new-zone',
-        //     description: 'Your new workspace',
-        //     userId: session?.user.userId ?? 0
-        //   })}
+          onClick={() => router.push('/dashboard/create')}
         >
           <Plus className="mr-2 h-4 w-4" />
           Create New Zone
@@ -91,13 +69,12 @@ export function SpacesGrid() {
     )
   }
 
-  // Spaces grid
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 mt-12">
       {spaces?.map((space) => (
         <div 
           key={space.spaceId} 
-          className="bg-[#1e1e1e] rounded-lg p-4 border border-[#2e2e2e] hover:border-[#505050] transition-colors duration-300"
+          className="bg-[#1e1e1e] hover:cursor-pointer rounded-lg p-4 border border-[#2e2e2e] hover:border-[#505050] transition-colors duration-300"
         >
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-lg font-semibold text-[#FFFFFF] truncate">
@@ -119,9 +96,7 @@ export function SpacesGrid() {
                 variant="ghost" 
                 size="sm" 
                 className="text-[#FFFFFF] text-sm hover:text-white hover:bg-[#2e2e2e]"
-                // onClick={() => updateExistingSpace(space.spaceId, { 
-                //   name: `${space.name} (Updated)` 
-                // })}
+                onClick={() => router.push(`/dashboard/edit/${space.spaceId}`)}
               >
                 Edit
               </Button>
@@ -129,7 +104,8 @@ export function SpacesGrid() {
                 variant="ghost" 
                 size="sm" 
                 className="text-red-500 text-sm hover:text-red-500 hover:bg-red-500/10"
-                // onClick={() => removeSpace(space.spaceId)}
+                onClick={() => deleteSpace(space.spaceId)}
+                disabled={isDeleting}
               >
                 Delete
               </Button>
@@ -139,6 +115,7 @@ export function SpacesGrid() {
       ))}
       <div 
         className="bg-[#1e1e1e] rounded-lg p-4 border border-[#2e2e2e] border-dashed flex items-center hover:cursor-pointer justify-center hover:border-[#4a4a4a] transition-colors duration-300"
+        onClick={() => router.push('/dashboard/spaces/create')}
       >
           <Plus className="mr-2 h-4 w-4" />
           Create New Zone

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import localFont from '@next/font/local'
-
+import { Providers } from "@/providers";
 
 export const metadata: Metadata = {
   title: "EchoTestimonials",
@@ -48,7 +48,9 @@ export default function RootLayout({
       <body
         className={` ${monasans.variable} ${nohemiBold.variable} ${primary_regular.variable} antialiased bg-black`}
       >
-        {children}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

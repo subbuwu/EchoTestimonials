@@ -9,7 +9,7 @@ const UserMenu = () => {
     const { data : session } = useSession();
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="hidden lg:flex ml-auto items-center space-x-2 text-white">
+      <DropdownMenuTrigger className="flex items-center space-x-2 text-white">
         {session?.user?.image ? (
           <UserAvatar image={session?.user.image} />
         ) : (

@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { X, LayoutDashboard, Settings, Ellipsis } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import UserMenu from "./UserMenu";
 
 const Sidebar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -46,10 +47,14 @@ const Sidebar = () => {
             <LayoutDashboard className="mr-2 h-4 w-4" />
             Your Zones
           </Button>
-          <Button variant="ghost" className="w-full justify-start">
+          <Button variant="ghost" className="w-full mb-2 justify-start">
             <Settings className="mr-2 h-4 w-4" />
             Settings
           </Button>
+
+          <div className="flex pl-4 justify-start items-center  xl:hidden">
+            <UserMenu  />
+          </div>
         </nav>
       </aside>
 

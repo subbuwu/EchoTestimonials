@@ -3,7 +3,7 @@ import React, { useState,useEffect } from "react";
 import { Menu, X, LogIn, LogOut } from "lucide-react";
 import { signIn, signOut } from "next-auth/react";
 import UserAvatar from "@/components/UserAvatar";
-import { api } from "@/lib/axios"
+import { api } from "@/lib/api"
 
 type AppbarProps = {
   isAuthenticated: boolean;
