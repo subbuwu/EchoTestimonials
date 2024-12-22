@@ -52,7 +52,7 @@ export function SpacesGrid() {
           </svg>
         </div>
         <h3 className="text-xl font-medium text-[#FFFFFF] mb-2">
-          No Zones Created Yet
+          No Spaces Created Yet
         </h3>
         <p className="text-[#8a8a8a] mb-4">
           Start by creating your first zone to organize your work
