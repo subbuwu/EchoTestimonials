@@ -2,7 +2,6 @@
 import React from 'react'
 import { Menu, User, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { signOut, useSession } from "next-auth/react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +15,6 @@ import Image from "next/image"
 type Props = {}
 
 const HeaderNav = (props: Props) => {
-    const { data: session } = useSession()
     return (
         <header className="flex h-14 items-center justify-between border-[#2e2e2e] border-b px-4 lg:px-6">
             <Button
@@ -34,10 +32,10 @@ const HeaderNav = (props: Props) => {
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Image
+                            src="/images/profile.png"
                             width={44}
                             height={44}
                             alt="profile_image"
-                            src={session?.user?.image ?? ''}
                             className="rounded-full border p-0.5 cursor-pointer"
                         />
                     </DropdownMenuTrigger>
@@ -48,7 +46,7 @@ const HeaderNav = (props: Props) => {
                             <User className="mr-2 h-4 w-4" />
                             <span>Profile</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="cursor-pointer" onClick={() => signOut()}>
+                        <DropdownMenuItem className="cursor-pointer">
                             <LogOut className="mr-2 h-4 w-4" />
                             <span>Log out</span>
                         </DropdownMenuItem>

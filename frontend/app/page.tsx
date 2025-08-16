@@ -1,15 +1,14 @@
-import { auth } from "@/auth";
 import Appbar from "@/components/Appbar";
 import AnimatedLandingContent from "@/components/Landing/AnimatedLandingContent";
+import { auth } from "@clerk/nextjs/server";
 
 export default async function Page() {
-  const session = await auth();
-  const isAuthenticated = !!session?.user;
-
+  const { userId } = await auth()
+  
   return (
     <>
-        <Appbar isAuthenticated={isAuthenticated} user={session?.user} />
-        <AnimatedLandingContent isAuthenticated={isAuthenticated}/>
-       </>
+      <Appbar isAuthenticated={!!userId} />
+      <AnimatedLandingContent isAuthenticated={!!userId} />
+    </>
   );
 }
