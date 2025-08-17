@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { clerkMiddleware } from '@clerk/express'
 import clerkRoutes from "@/routes/clerk.routes"
+import orgsRoutes from "@/routes/orgs.routes"
 
 dotenv.config();
 
@@ -17,13 +18,13 @@ app.use(clerkMiddleware())
 app.use('/api/clerk-webhook', clerkRoutes);
 app.use(express.json())
 
-app.get('/health', async (_, res) => {
+app.get('/health', (_, res) => {
   res.json({ status: 'healthy' });
 });
 
-app.use('/api/clerk-webhook', clerkRoutes);
 
 // app.use('/users', userRoutes);
+app.use('/orgs',orgsRoutes)
 
 const PORT = process.env.PORT || 8080;
 
