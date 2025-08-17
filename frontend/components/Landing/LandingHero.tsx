@@ -53,7 +53,7 @@ const LandingHero = ({isAuthenticated} : {isAuthenticated : boolean}) => {
                 <div className="flex flex-col lg:flex-row gap-2 lg:gap-8 items-center font-medium">
                     <span>Testimonials That</span>
                     <div className="relative overflow-hidden p-2 lg:py-3 lg:px-6 rounded-[20px] border-2 border-blue-400 min-w-[300px] lg:min-w-[450px]">
-                        <div className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-600">
+                        <div className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 to-yellow-400">
                             <span>{displayText}</span>
                             <span className="animate-pulse text-blue-400">|</span>
                         </div>

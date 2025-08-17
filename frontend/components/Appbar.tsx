@@ -55,7 +55,7 @@ const Appbar = ({ isAuthenticated }: AppbarProps) => {
           <div className="hidden md:flex items-center space-x-4">
           <SignedOut>
               <SignUpButton>
-                <button className="bg-blue-500 hover:bg-blue-600 transition-colors px-6 py-3 rounded-[10px] flex flex-row gap-2 items-center text-[18px] leading-[22px] text-white">
+                <button className="bg-purple-400 hover:bg-purple-400/50 transition-colors px-6 py-3 rounded-[10px] flex flex-row gap-2 items-center text-[18px] leading-[22px] text-black">
                   Get Started
                 </button>
               </SignUpButton>

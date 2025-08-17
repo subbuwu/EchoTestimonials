@@ -7,10 +7,10 @@ export default async function DashboardLayout({
 }) {
 
   return (
-      <div className="bg-[#171717] flex min-h-screen flex-col text-[#FFFFFF] font-primary_regular lg:flex-row">
+      <div className="bg-chinese flex min-h-screen flex-col text-foreground font-primary_regular lg:flex-row">
         <Sidebar />
-          <main className="flex-1 overflow-y-auto p-2 xl:p-8">
-            <div className="max-w-7xl mx-auto">
+          <main className="flex-1 overflow-y-auto">
+            <div className="">
               {children}
             </div>
           </main>

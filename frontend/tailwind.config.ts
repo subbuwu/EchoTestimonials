@@ -9,48 +9,47 @@ const config: Config = {
   ],
   theme: {
   	extend: {
-  		colors: {
-  			background: 'hsl(var(--background))',
-  			foreground: 'hsl(var(--foreground))',
-  			card: {
-  				DEFAULT: 'hsl(var(--card))',
-  				foreground: 'hsl(var(--card-foreground))'
-  			},
-  			popover: {
-  				DEFAULT: 'hsl(var(--popover))',
-  				foreground: 'hsl(var(--popover-foreground))'
-  			},
-  			primary: {
-  				DEFAULT: 'hsl(var(--primary))',
-  				foreground: 'hsl(var(--primary-foreground))'
-  			},
-  			secondary: {
-  				DEFAULT: 'hsl(var(--secondary))',
-  				foreground: 'hsl(var(--secondary-foreground))'
-  			},
-  			muted: {
-  				DEFAULT: 'hsl(var(--muted))',
-  				foreground: 'hsl(var(--muted-foreground))'
-  			},
-  			accent: {
-  				DEFAULT: 'hsl(var(--accent))',
-  				foreground: 'hsl(var(--accent-foreground))'
-  			},
-  			destructive: {
-  				DEFAULT: 'hsl(var(--destructive))',
-  				foreground: 'hsl(var(--destructive-foreground))'
-  			},
-  			border: 'hsl(var(--border))',
-  			input: 'hsl(var(--input))',
-  			ring: 'hsl(var(--ring))',
-  			chart: {
-  				'1': 'hsl(var(--chart-1))',
-  				'2': 'hsl(var(--chart-2))',
-  				'3': 'hsl(var(--chart-3))',
-  				'4': 'hsl(var(--chart-4))',
-  				'5': 'hsl(var(--chart-5))'
-  			}
-  		},
+  		 colors: {
+    // Base palette
+    flavescent: "#FFEE98",   // highlights / badges
+    peach: "#FDC693",        // warnings / accents
+    pink: "#FF9595",         // errors / destructive
+    blue: "#C0DBEF",         // info / secondary accents
+
+    // Grayscale
+    raisin: "#242527",       // sidebar / cards
+    onyx: "#353839",         // elevated backgrounds
+    eerie: "#1A1D1F",        // dashboard background
+    chinese: "#111315",      // darkest background
+
+    // Map to semantic tokens
+    background: "#111315",    // dark mode bg
+    foreground: "#FFFFFF",    // text
+    card: {
+      DEFAULT: "#1A1D1F",     // cards
+      foreground: "#FFFFFF",
+    },
+    primary: {
+      DEFAULT: "#FFEE98",     // buttons
+      foreground: "#111315",  // text on primary
+    },
+    secondary: {
+      DEFAULT: "#C0DBEF",     // secondary buttons
+      foreground: "#111315",
+    },
+    accent: {
+      DEFAULT: "#FDC693",     // highlights
+      foreground: "#111315",
+    },
+    destructive: {
+      DEFAULT: "#FF9595",     // errors
+      foreground: "#111315",
+    },
+    muted: {
+      DEFAULT: "#353839",     // muted UI (sidebar items, borders)
+      foreground: "#C0DBEF",  // softer text
+    },
+  },
   		fontFamily: {
   			monasans: ['var(--font-monasans)'],
   			nohemiBold: ['var(--font-nohemiBold)'],
