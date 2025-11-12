@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "_moduleAliases": {
+    "@": "src"
+  },
   "scripts": {
     "dev": "ts-node-dev --respawn  --require tsconfig-paths/register src/server.ts",
     "start": "node dist/server.js",
@@ -27,6 +30,7 @@
     "morgan": "^1.10.0",
     "pg": "^8.16.3",
     "postgres": "^3.4.7",
+    "module-alias": "^2.2.3",
     "svix": "^1.76.1",
     "tsconfig-paths": "^4.2.0",
     "zod": "^3.25.74"
