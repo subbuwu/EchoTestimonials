@@ -1,14 +1,24 @@
-import express from "express";
-import serverless from "serverless-http";
+// Register path aliases for Vercel serverless functions
+// Use require() to ensure this runs synchronously before any imports
+require('module-alias/register');
 
-const app = express();
+const path = require('path');
+const moduleAlias = require('module-alias');
 
-app.get("/", (_, res) => {
-  res.send("Express backend deployed via Vercel + pnpm!");
+// In CommonJS (compiled TypeScript), __dirname is automatically available
+// Resolve src directory relative to this file's location
+// File structure: api/index.js (compiled) -> src/ is one level up
+const srcPath = path.resolve(__dirname, '../src');
+
+// Configure module-alias with absolute path
+// This must happen before any imports that use @/ aliases
+moduleAlias.addAliases({
+  '@': srcPath,
 });
 
-app.get("/api/hello", (_, res) => {
-  res.json({ message: "Hello from Express on Vercel!" });
-});
+// Import server after aliases are configured
+// Using require() to ensure CommonJS module resolution works correctly
+const server = require('../src/server').default;
 
-export const handler = serverless(app);
+module.exports = server;
+

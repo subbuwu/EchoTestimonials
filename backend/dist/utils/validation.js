@@ -32,7 +32,7 @@ function validateUrl(url) {
             return { isValid: false, error: 'URL must use http or https protocol' };
         }
     }
-    catch (_a) {
+    catch {
         return { isValid: false, error: 'Invalid URL format' };
     }
     if (url.length > 2048) {

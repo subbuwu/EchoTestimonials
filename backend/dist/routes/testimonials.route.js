@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const testimonials_controller_1 = require("@/controllers/testimonials.controller");
 const validation_1 = require("@/utils/validation");
@@ -21,7 +12,7 @@ function getClerkId(req) {
     }
     return auth.userId;
 }
-router.post('/', (0, express_1.requireAuth)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post('/', (0, express_1.requireAuth)(), async (req, res) => {
     try {
         const { projectId, name, email, company, role, imageUrl, rating, testimonial, customFields, isPublished, formConfig } = req.body;
         if (!projectId) {
@@ -38,7 +29,7 @@ router.post('/', (0, express_1.requireAuth)(), (req, res) => __awaiter(void 0, v
         if (testimonial && sanitizedTestimonial.length === 0) {
             return res.status(400).json({ error: 'Testimonial cannot be empty' });
         }
-        const created = yield (0, testimonials_controller_1.createTestimonial)({
+        const created = await (0, testimonials_controller_1.createTestimonial)({
             projectId,
             name: sanitizedName,
             email: sanitizedEmail,
@@ -56,24 +47,24 @@ router.post('/', (0, express_1.requireAuth)(), (req, res) => __awaiter(void 0, v
         console.error('Error creating testimonial:', error);
         res.status(500).json({ error: 'Failed to create testimonial' });
     }
-}));
-router.get('/project/:projectId', (0, express_1.requireAuth)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+router.get('/project/:projectId', (0, express_1.requireAuth)(), async (req, res) => {
     try {
         const clerkId = getClerkId(req);
         const { projectId } = req.params;
-        const testimonials = yield (0, testimonials_controller_1.getTestimonialsByProjectId)(projectId, clerkId);
+        const testimonials = await (0, testimonials_controller_1.getTestimonialsByProjectId)(projectId, clerkId);
         res.json(testimonials);
     }
     catch (error) {
         console.error('Error fetching testimonials:', error);
         res.status(500).json({ error: 'Failed to fetch testimonials' });
     }
-}));
-router.get('/:id', (0, express_1.requireAuth)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+router.get('/:id', (0, express_1.requireAuth)(), async (req, res) => {
     try {
         const clerkId = getClerkId(req);
         const { id } = req.params;
-        const testimonial = yield (0, testimonials_controller_1.getTestimonialById)(id, clerkId);
+        const testimonial = await (0, testimonials_controller_1.getTestimonialById)(id, clerkId);
         if (!testimonial) {
             return res.status(404).json({ error: 'Testimonial not found or you don\'t have access to it' });
         }
@@ -83,8 +74,8 @@ router.get('/:id', (0, express_1.requireAuth)(), (req, res) => __awaiter(void 0,
         console.error('Error fetching testimonial:', error);
         res.status(500).json({ error: 'Failed to fetch testimonial' });
     }
-}));
-router.put('/:id', (0, express_1.requireAuth)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+router.put('/:id', (0, express_1.requireAuth)(), async (req, res) => {
     try {
         const clerkId = getClerkId(req);
         const { id } = req.params;
@@ -100,7 +91,7 @@ router.put('/:id', (0, express_1.requireAuth)(), (req, res) => __awaiter(void 0,
         if (testimonial !== undefined && sanitizedTestimonial && sanitizedTestimonial.length === 0) {
             return res.status(400).json({ error: 'Testimonial cannot be empty' });
         }
-        const updated = yield (0, testimonials_controller_1.updateTestimonial)(id, clerkId, {
+        const updated = await (0, testimonials_controller_1.updateTestimonial)(id, clerkId, {
             name: sanitizedName,
             email: sanitizedEmail,
             company: sanitizedCompany,
@@ -120,12 +111,12 @@ router.put('/:id', (0, express_1.requireAuth)(), (req, res) => __awaiter(void 0,
         console.error('Error updating testimonial:', error);
         res.status(500).json({ error: 'Failed to update testimonial' });
     }
-}));
-router.delete('/:id', (0, express_1.requireAuth)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+router.delete('/:id', (0, express_1.requireAuth)(), async (req, res) => {
     try {
         const clerkId = getClerkId(req);
         const { id } = req.params;
-        const deleted = yield (0, testimonials_controller_1.deleteTestimonial)(id, clerkId);
+        const deleted = await (0, testimonials_controller_1.deleteTestimonial)(id, clerkId);
         if (!deleted) {
             return res.status(404).json({ error: 'Testimonial not found or you don\'t have access to it' });
         }
@@ -135,9 +126,9 @@ router.delete('/:id', (0, express_1.requireAuth)(), (req, res) => __awaiter(void
         console.error('Error deleting testimonial:', error);
         res.status(500).json({ error: 'Failed to delete testimonial' });
     }
-}));
+});
 // Public routes (no auth required)
-router.post('/public/:embedKey', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post('/public/:embedKey', async (req, res) => {
     try {
         const { embedKey } = req.params;
         const { name, email, company, role, imageUrl, rating, testimonial, customFields } = req.body;
@@ -164,7 +155,7 @@ router.post('/public/:embedKey', (req, res) => __awaiter(void 0, void 0, void 0,
         const sanitizedRole = role ? (0, validation_1.sanitizeText)(role) : undefined;
         const sanitizedImageUrl = imageUrl ? (0, validation_1.sanitizeText)(imageUrl) : undefined;
         const sanitizedTestimonial = (0, validation_1.sanitizeText)(testimonial);
-        const updated = yield (0, testimonials_controller_1.createTestimonialSubmission)(embedKey, {
+        const updated = await (0, testimonials_controller_1.createTestimonialSubmission)(embedKey, {
             name: sanitizedName,
             email: sanitizedEmail,
             company: sanitizedCompany,
@@ -187,11 +178,11 @@ router.post('/public/:embedKey', (req, res) => __awaiter(void 0, void 0, void 0,
         }
         res.status(500).json({ error: 'Failed to submit testimonial' });
     }
-}));
-router.get('/public/:embedKey', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+router.get('/public/:embedKey', async (req, res) => {
     try {
         const { embedKey } = req.params;
-        const testimonial = yield (0, testimonials_controller_1.getTestimonialByEmbedKey)(embedKey);
+        const testimonial = await (0, testimonials_controller_1.getTestimonialByEmbedKey)(embedKey);
         if (!testimonial) {
             return res.status(404).json({ error: 'Testimonial form not found' });
         }
@@ -201,5 +192,5 @@ router.get('/public/:embedKey', (req, res) => __awaiter(void 0, void 0, void 0, 
         console.error('Error fetching testimonial form:', error);
         res.status(500).json({ error: 'Failed to fetch testimonial form' });
     }
-}));
+});
 exports.default = router;

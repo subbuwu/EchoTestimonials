@@ -2,9 +2,12 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
+  "_moduleAliases": {
+    "@": "dist"
+  },
   "scripts": {
-    "dev": "ts-node-dev --respawn  --require tsconfig-paths/register src/server.ts",
-    "start": "node dist/server.js",
+    "dev": "ts-node-dev --respawn --require tsconfig-paths/register src/server.ts",
+    "start": "node -r module-alias/register dist/server.js",
     "build": "tsc",
     "lint": "eslint . --ext .ts",
     "generate": "pnpm exec drizzle-kit generate",
@@ -26,7 +29,6 @@
     "morgan": "^1.10.0",
     "pg": "^8.16.3",
     "postgres": "^3.4.7",
-    "serverless-http": "^4.0.0",
     "svix": "^1.76.1",
     "tsconfig-paths": "^4.2.0",
     "zod": "^3.25.74"

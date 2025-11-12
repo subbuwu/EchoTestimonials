@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const orgs_controller_1 = require("@/controllers/orgs.controller");
 const db_1 = require("@/db");
@@ -23,18 +14,18 @@ function getClerkId(req) {
     }
     return auth.userId;
 }
-router.get('/', (0, express_1.requireAuth)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/', (0, express_1.requireAuth)(), async (req, res) => {
     try {
         const clerkId = getClerkId(req);
-        const orgs = yield (0, orgs_controller_1.getOrgsByClerkId)(clerkId);
+        const orgs = await (0, orgs_controller_1.getOrgsByClerkId)(clerkId);
         res.json(orgs);
     }
     catch (error) {
         console.error('Error fetching organizations:', error);
         res.status(500).json({ error: 'Failed to fetch organizations' });
     }
-}));
-router.post('/', (0, express_1.requireAuth)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+router.post('/', (0, express_1.requireAuth)(), async (req, res) => {
     try {
         const clerkId = getClerkId(req);
         const result = orgs_1.createOrgSchema.safeParse(req.body);
@@ -45,8 +36,8 @@ router.post('/', (0, express_1.requireAuth)(), (req, res) => __awaiter(void 0, v
             });
         }
         const { name, slug } = result.data;
-        const org = yield (0, orgs_controller_1.createOrg)({ name, slug, createdBy: clerkId });
-        yield db_1.db.insert(schema_1.orgMembers).values({
+        const org = await (0, orgs_controller_1.createOrg)({ name, slug, createdBy: clerkId });
+        await db_1.db.insert(schema_1.orgMembers).values({
             orgId: org[0].id,
             userId: clerkId,
             role: 'admin'
@@ -57,12 +48,12 @@ router.post('/', (0, express_1.requireAuth)(), (req, res) => __awaiter(void 0, v
         console.error('Error creating organization:', error);
         res.status(500).json({ error: 'Failed to create organization' });
     }
-}));
-router.get('/:slug', (0, express_1.requireAuth)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+router.get('/:slug', (0, express_1.requireAuth)(), async (req, res) => {
     try {
         const clerkId = getClerkId(req);
         const { slug } = req.params;
-        const org = yield (0, orgs_controller_1.getOrgBySlug)(slug, clerkId);
+        const org = await (0, orgs_controller_1.getOrgBySlug)(slug, clerkId);
         if (!org) {
             return res.status(404).json({
                 error: 'Organization not found or you don\'t have access to it'
@@ -74,12 +65,12 @@ router.get('/:slug', (0, express_1.requireAuth)(), (req, res) => __awaiter(void 
         console.error('Error fetching organization:', error);
         res.status(500).json({ error: 'Failed to fetch organization' });
     }
-}));
-router.get('/:slug/members', (0, express_1.requireAuth)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+router.get('/:slug/members', (0, express_1.requireAuth)(), async (req, res) => {
     try {
         const clerkId = getClerkId(req);
         const { slug } = req.params;
-        const members = yield (0, orgs_controller_1.getOrgMembersBySlug)(slug, clerkId);
+        const members = await (0, orgs_controller_1.getOrgMembersBySlug)(slug, clerkId);
         if (!members) {
             return res.status(404).json({
                 error: 'Organization not found or you don\'t have access to it'
@@ -91,12 +82,12 @@ router.get('/:slug/members', (0, express_1.requireAuth)(), (req, res) => __await
         console.error('Error fetching organization members:', error);
         res.status(500).json({ error: 'Failed to fetch organization members' });
     }
-}));
-router.get('/:slug/projects', (0, express_1.requireAuth)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+router.get('/:slug/projects', (0, express_1.requireAuth)(), async (req, res) => {
     try {
         const clerkId = getClerkId(req);
         const { slug } = req.params;
-        const projects = yield (0, orgs_controller_1.getOrgProjectsBySlug)(slug, clerkId);
+        const projects = await (0, orgs_controller_1.getOrgProjectsBySlug)(slug, clerkId);
         if (!projects) {
             return res.status(404).json({
                 error: 'Organization not found or you don\'t have access to it'
@@ -108,5 +99,5 @@ router.get('/:slug/projects', (0, express_1.requireAuth)(), (req, res) => __awai
         console.error('Error fetching organization projects:', error);
         res.status(500).json({ error: 'Failed to fetch organization projects' });
     }
-}));
+});
 exports.default = router;

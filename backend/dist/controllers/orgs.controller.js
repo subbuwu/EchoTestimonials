@@ -1,20 +1,11 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getOrgProjectsBySlug = exports.getOrgMembersBySlug = exports.getOrgBySlug = exports.createOrg = exports.getOrgsByClerkId = void 0;
 const db_1 = require("@/db");
 const schema_1 = require("@/db/schema");
 const drizzle_orm_1 = require("drizzle-orm");
-const getOrgsByClerkId = (clerkId) => __awaiter(void 0, void 0, void 0, function* () {
-    const rows = yield db_1.db
+const getOrgsByClerkId = async (clerkId) => {
+    const rows = await db_1.db
         .select({
         id: schema_1.orgs.id,
         name: schema_1.orgs.name,
@@ -28,9 +19,9 @@ const getOrgsByClerkId = (clerkId) => __awaiter(void 0, void 0, void 0, function
         .where((0, drizzle_orm_1.eq)(schema_1.users.clerkId, clerkId))
         .orderBy((0, drizzle_orm_1.desc)(schema_1.orgs.createdAt));
     // Get member and project counts for each org
-    const orgsWithCounts = yield Promise.all(rows.map((org) => __awaiter(void 0, void 0, void 0, function* () {
+    const orgsWithCounts = await Promise.all(rows.map(async (org) => {
         var _a, _b;
-        const [memberCountResult, projectCountResult] = yield Promise.all([
+        const [memberCountResult, projectCountResult] = await Promise.all([
             db_1.db
                 .select({ count: (0, drizzle_orm_1.count)() })
                 .from(schema_1.orgMembers)
@@ -40,13 +31,17 @@ const getOrgsByClerkId = (clerkId) => __awaiter(void 0, void 0, void 0, function
                 .from(schema_1.projects)
                 .where((0, drizzle_orm_1.eq)(schema_1.projects.orgId, org.id)),
         ]);
-        return Object.assign(Object.assign({}, org), { memberCount: ((_a = memberCountResult[0]) === null || _a === void 0 ? void 0 : _a.count) || 0, projectCount: ((_b = projectCountResult[0]) === null || _b === void 0 ? void 0 : _b.count) || 0 });
-    })));
+        return {
+            ...org,
+            memberCount: ((_a = memberCountResult[0]) === null || _a === void 0 ? void 0 : _a.count) || 0,
+            projectCount: ((_b = projectCountResult[0]) === null || _b === void 0 ? void 0 : _b.count) || 0,
+        };
+    }));
     return orgsWithCounts;
-});
+};
 exports.getOrgsByClerkId = getOrgsByClerkId;
-const createOrg = (data) => __awaiter(void 0, void 0, void 0, function* () {
-    const newOrg = yield db_1.db
+const createOrg = async (data) => {
+    const newOrg = await db_1.db
         .insert(schema_1.orgs)
         .values({
         name: data.name,
@@ -54,11 +49,11 @@ const createOrg = (data) => __awaiter(void 0, void 0, void 0, function* () {
     })
         .returning();
     return newOrg;
-});
+};
 exports.createOrg = createOrg;
-const getOrgBySlug = (slug, clerkId) => __awaiter(void 0, void 0, void 0, function* () {
+const getOrgBySlug = async (slug, clerkId) => {
     var _a, _b;
-    const orgResult = yield db_1.db
+    const orgResult = await db_1.db
         .select({
         id: schema_1.orgs.id,
         name: schema_1.orgs.name,
@@ -77,12 +72,12 @@ const getOrgBySlug = (slug, clerkId) => __awaiter(void 0, void 0, void 0, functi
     }
     const org = orgResult[0];
     // Get member count
-    const memberCountResult = yield db_1.db
+    const memberCountResult = await db_1.db
         .select({ count: (0, drizzle_orm_1.count)() })
         .from(schema_1.orgMembers)
         .where((0, drizzle_orm_1.eq)(schema_1.orgMembers.orgId, org.id));
     // Get project count
-    const projectCountResult = yield db_1.db
+    const projectCountResult = await db_1.db
         .select({ count: (0, drizzle_orm_1.count)() })
         .from(schema_1.projects)
         .where((0, drizzle_orm_1.eq)(schema_1.projects.orgId, org.id));
@@ -95,11 +90,11 @@ const getOrgBySlug = (slug, clerkId) => __awaiter(void 0, void 0, void 0, functi
         memberCount: ((_a = memberCountResult[0]) === null || _a === void 0 ? void 0 : _a.count) || 0,
         projectCount: ((_b = projectCountResult[0]) === null || _b === void 0 ? void 0 : _b.count) || 0,
     };
-});
+};
 exports.getOrgBySlug = getOrgBySlug;
-const getOrgMembersBySlug = (slug, clerkId) => __awaiter(void 0, void 0, void 0, function* () {
+const getOrgMembersBySlug = async (slug, clerkId) => {
     // First verify user is member of organization
-    const userMembership = yield db_1.db
+    const userMembership = await db_1.db
         .select({ orgId: schema_1.orgs.id })
         .from(schema_1.orgs)
         .innerJoin(schema_1.orgMembers, (0, drizzle_orm_1.eq)(schema_1.orgs.id, schema_1.orgMembers.orgId))
@@ -111,7 +106,7 @@ const getOrgMembersBySlug = (slug, clerkId) => __awaiter(void 0, void 0, void 0,
         return null;
     }
     // Get all members of the organization
-    const members = yield db_1.db
+    const members = await db_1.db
         .select({
         id: schema_1.orgMembers.id,
         userId: schema_1.users.clerkId,
@@ -128,11 +123,11 @@ const getOrgMembersBySlug = (slug, clerkId) => __awaiter(void 0, void 0, void 0,
         .where((0, drizzle_orm_1.eq)(schema_1.orgs.slug, slug))
         .orderBy((0, drizzle_orm_1.desc)(schema_1.orgMembers.createdAt));
     return members;
-});
+};
 exports.getOrgMembersBySlug = getOrgMembersBySlug;
-const getOrgProjectsBySlug = (slug, clerkId) => __awaiter(void 0, void 0, void 0, function* () {
+const getOrgProjectsBySlug = async (slug, clerkId) => {
     // First verify user is member of organization
-    const userMembership = yield db_1.db
+    const userMembership = await db_1.db
         .select({ orgId: schema_1.orgs.id })
         .from(schema_1.orgs)
         .innerJoin(schema_1.orgMembers, (0, drizzle_orm_1.eq)(schema_1.orgs.id, schema_1.orgMembers.orgId))
@@ -145,7 +140,7 @@ const getOrgProjectsBySlug = (slug, clerkId) => __awaiter(void 0, void 0, void 0
     }
     const orgId = userMembership[0].orgId;
     // Get all projects for the organization
-    const orgProjects = yield db_1.db
+    const orgProjects = await db_1.db
         .select({
         id: schema_1.projects.id,
         orgId: schema_1.projects.orgId, // Added orgId to response
@@ -158,5 +153,5 @@ const getOrgProjectsBySlug = (slug, clerkId) => __awaiter(void 0, void 0, void 0
         .where((0, drizzle_orm_1.eq)(schema_1.projects.orgId, orgId))
         .orderBy((0, drizzle_orm_1.desc)(schema_1.projects.createdAt));
     return orgProjects;
-});
+};
 exports.getOrgProjectsBySlug = getOrgProjectsBySlug;
