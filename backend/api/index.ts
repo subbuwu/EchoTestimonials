@@ -1,22 +1,18 @@
 // Register path aliases for Vercel serverless functions
-// Don't use module-alias/register as it tries to find package.json
-// Instead, manually configure module-alias
+// CRITICAL: This must be the FIRST thing that runs - no other requires before this
 const path = require('path');
 const moduleAlias = require('module-alias');
 
-// In CommonJS (compiled TypeScript), __dirname is automatically available
-// Resolve src directory relative to this file's location
+// Get the src directory path
 // In Vercel: /var/task/backend/api/index.js -> /var/task/backend/src/
 const srcPath = path.resolve(__dirname, '../src');
 
-// Manually configure module-alias with absolute path
-// This must happen before any imports that use @/ aliases
+// Configure module-alias BEFORE any modules that use @/ are loaded
 moduleAlias.addAliases({
   '@': srcPath,
 });
 
-// Import server after aliases are configured
-// Using require() to ensure CommonJS module resolution works correctly
+// Now import the server - module-alias will handle @/ imports in server.js
 const server = require('../src/server').default;
 
 module.exports = server;
