@@ -5,6 +5,9 @@ export interface OrgSummary {
   name: string;
   slug: string;
   role: OrgRole;
+  createdAt?: string;
+  memberCount?: number;
+  projectCount?: number;
 }
 
 
@@ -29,13 +32,19 @@ export interface OrganizationMember {
   joinedAt: string; // This maps to orgMembers.createdAt
 }
 
+import { FormConfig } from './FormConfig';
+
 export interface Project {
   id: string;
   orgId: string;
   name: string;
   domain: string | null;
   embedKey: string;
+  formConfig: FormConfig | null;
   createdAt: string;
+  // Extended fields from backend when fetching by ID
+  orgName?: string;
+  orgSlug?: string;
 }
 
 // API Response Types

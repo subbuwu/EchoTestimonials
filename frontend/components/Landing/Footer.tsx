@@ -2,9 +2,7 @@ import { IconHeartFilled,IconBrandX,IconBrandGithub,IconBrandLinkedin } from '@t
 import Link from 'next/link'
 import React from 'react'
 
-type Props = {}
-
-const Footer = (props: Props) => {
+const Footer = () => {
   return (
     <footer className='font-primary_regular flex  text-white h-full bg-zinc-900 bg-clip-padding backdrop-filter z-[100] backdrop-blur-sm bg-opacity-30 md:px-16 px-6 items-center justify-between py-6 border-t-2 border-zinc-800'>
         <div>

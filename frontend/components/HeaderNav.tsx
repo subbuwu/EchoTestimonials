@@ -12,9 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import Image from "next/image"
 
-type Props = {}
-
-const HeaderNav = (props: Props) => {
+const HeaderNav = () => {
     return (
         <header className="flex h-14 items-center justify-between border-[#2e2e2e] border-b px-4 lg:px-6">
             <Button

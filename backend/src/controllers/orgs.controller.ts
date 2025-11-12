@@ -17,7 +17,29 @@ export const getOrgsByClerkId = async (clerkId: string) => {
     .where(eq(users.clerkId, clerkId))
     .orderBy(desc(orgs.createdAt));
 
-  return rows;
+  // Get member and project counts for each org
+  const orgsWithCounts = await Promise.all(
+    rows.map(async (org) => {
+      const [memberCountResult, projectCountResult] = await Promise.all([
+        db
+          .select({ count: count() })
+          .from(orgMembers)
+          .where(eq(orgMembers.orgId, org.id)),
+        db
+          .select({ count: count() })
+          .from(projects)
+          .where(eq(projects.orgId, org.id)),
+      ]);
+
+      return {
+        ...org,
+        memberCount: memberCountResult[0]?.count || 0,
+        projectCount: projectCountResult[0]?.count || 0,
+      };
+    })
+  );
+
+  return orgsWithCounts;
 };
 
 export const createOrg = async (data: { name: string; slug: string; createdBy: string }) => {

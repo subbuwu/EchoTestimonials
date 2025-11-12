@@ -9,16 +9,19 @@ import {
 import { Button } from "@/components/ui/button";
 import UserMenu from "./UserMenu";
 import { usePathname } from "next/navigation";
-import { UserButton } from "@clerk/nextjs";
+
 
 const Sidebar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
 
-  const menuItems = [
+  const menuItems: Array<{
+    icon: React.ComponentType<{ className?: string }>;
+    label: string;
+    path: string;
+  }> = [
     { icon: LayoutDashboard, label: "Organizations", path: "/dashboard" },
     { icon: Settings, label: "Settings", path: "/settings" },
-    { icon: UserButton }
   ];
 
   return (
@@ -56,19 +59,23 @@ const Sidebar = () => {
 
         {/* Navigation */}
         <nav className="flex-1 mt-6 space-y-2 w-full flex flex-col items-center">
-          {menuItems.map((item: any, index: number) => (
-            <button
-              key={index}
-              className={`
-                w-10 h-10 rounded-xl mb-2 flex items-center justify-center
-                ${pathname == item.path || pathname.startsWith(item.path) ? "bg-[#7361dc] text-white" : "hover:bg-blue hover:text-primary-foreground" }
-              `}
-            >
-              <item.icon className="h-5 w-5" />
-              {/* Tooltip-like label for desktop */}
-              <span className="sr-only">{item.label}</span>
-            </ button>
-          ))}
+          {menuItems.map((item, index) => {
+            const IconComponent = item.icon;
+            const isActive = pathname === item.path || pathname.startsWith(item.path);
+            return (
+              <button
+                key={index}
+                className={`
+                  w-10 h-10 rounded-xl mb-2 flex items-center justify-center
+                  ${isActive ? "bg-[#7361dc] text-white" : "hover:bg-blue hover:text-primary-foreground" }
+                `}
+              >
+                <IconComponent className="h-5 w-5" />
+                {/* Tooltip-like label for desktop */}
+                <span className="sr-only">{item.label}</span>
+              </button>
+            );
+          })}
            
         </nav>
 

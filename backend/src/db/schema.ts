@@ -34,3 +34,21 @@ export const projects = pgTable("projects", {
   embedKey: varchar("embed_key", { length: 64 }).notNull().unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const testimonials = pgTable("testimonials", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  projectId: uuid("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  embedKey: varchar("embed_key", { length: 64 }).notNull().unique(), // Unique embed key for each testimonial form
+  formConfig: text("form_config"), // JSON string for form field configuration
+  name: text("name").notNull(),
+  email: text("email"),
+  company: text("company"),
+  role: text("role"),
+  imageUrl: text("image_url"),
+  rating: text("rating"), // Can be "1" to "5" or null
+  testimonial: text("testimonial").notNull(), // Main testimonial text
+  customFields: text("custom_fields"), // JSON string for flexible fields
+  isPublished: text("is_published").default("false").notNull(), // "true" or "false"
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});

@@ -1,5 +1,5 @@
 'use client'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import React, { useState } from 'react'
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
@@ -19,7 +19,6 @@ import {
   Building2, 
   Users, 
   Folder, 
-  Settings, 
   Crown, 
   Shield, 
   User,
@@ -28,19 +27,18 @@ import {
   MoreHorizontal,
   Calendar,
   Globe,
-  Lock,
   ChevronRight,
   Activity,
   UserPlus,
-  Copy,
   ExternalLink
 } from "lucide-react";
-
+import { CreateProjectModal } from "@/components/Dashboard/CreateProjectModal";
 const OrgIdPage = () => {
   const { slug } = useParams<{ slug: string }>();
+  const router = useRouter();
   const { getToken } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
-
+  const [createProjectModal, setCreateProjectModal] = useState(false);
   // Queries
   const { data: org, isLoading: orgLoading, error: orgError } = useQuery<Organization>({
     queryKey: ["org", slug],
@@ -103,7 +101,7 @@ const OrgIdPage = () => {
     { id: 'overview', label: 'Overview', icon: Activity },
     { id: 'projects', label: 'Projects', icon: Folder },
     { id: 'members', label: 'Members', icon: Users },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    // { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   if (orgLoading) {
@@ -126,7 +124,7 @@ const OrgIdPage = () => {
           Organization not found
         </h3>
         <p className="text-muted-foreground">
-          The organization you're looking for doesn't exist or you don't have access to it.
+          The organization you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.
         </p>
       </div>
     );
@@ -143,7 +141,22 @@ const OrgIdPage = () => {
 
   return (
     <div className="space-y-6 p-6">
+      <CreateProjectModal 
+        open={createProjectModal} 
+        setOpen={setCreateProjectModal}
+        orgId={org.id}
+        orgSlug={slug}
+      />
       {/* Header */}
+      <div className="p-3 bg-eerie border-b border-muted/30">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                <span className="cursor-pointer" onClick={() => router.push('/dashboard')}>Organizations</span> <ChevronRight className="h-4 w-4" /> <span>{org.name}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       <div className="bg-raisin border border-muted/30 rounded-xl p-6">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
@@ -256,7 +269,11 @@ const OrgIdPage = () => {
                   <div className="space-y-3">
                     {projects && projects.length > 0 ? (
                       projects.slice(0, 3).map((project) => (
-                        <div key={project.id} className="flex items-center gap-3 p-3 bg-eerie rounded-lg hover:bg-onyx transition-colors cursor-pointer">
+                        <div
+                          key={project.id}
+                          onClick={() => router.push(`/dashboard/projects/${project.id}`)}
+                          className="flex items-center gap-3 p-3 bg-eerie rounded-lg hover:bg-onyx transition-colors cursor-pointer"
+                        >
                           <div className="w-10 h-10 bg-blue/20 rounded-lg flex items-center justify-center">
                             <Folder className="h-5 w-5 text-blue" />
                           </div>
@@ -282,7 +299,7 @@ const OrgIdPage = () => {
                         <h4 className="text-lg font-medium text-foreground mb-2">No projects yet</h4>
                         <p className="text-muted-foreground mb-4">Create your first project to get started</p>
                         {(org.role === 'owner' || org.role === 'admin') && (
-                          <button className="bg-flavescent text-eerie px-4 py-2 rounded-lg font-medium hover:bg-flavescent/90 transition-colors flex items-center gap-2 mx-auto">
+                          <button className="bg-flavescent text-eerie px-4 py-2 rounded-lg font-medium hover:bg-flavescent/90 transition-colors flex items-center gap-2 mx-auto" onClick={() => setCreateProjectModal(true)}>
                             <Plus className="h-4 w-4" />
                             Create Project
                           </button>
@@ -297,7 +314,7 @@ const OrgIdPage = () => {
               <div className="bg-raisin border border-muted/30 rounded-xl p-6">
                 <h3 className="text-lg font-semibold text-foreground mb-4">Recent Activity</h3>
                 <div className="space-y-4">
-                  {members && members.slice(0, 3).map((member, index) => (
+                  {members && members.slice(0, 3).map((member) => (
                     <div key={member.id} className="flex items-start gap-3">
                       <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center mt-1">
                         <UserPlus className="h-4 w-4 text-green-500" />
@@ -322,7 +339,7 @@ const OrgIdPage = () => {
                         <Folder className="h-4 w-4 text-blue" />
                       </div>
                       <div>
-                        <div className="text-foreground">New project "{project.name}" created</div>
+                        <div className="text-foreground">New project &quot;{project.name}&quot; created</div>
                         <div className="text-sm text-muted-foreground">
                           {formatDate(project.createdAt)}
                         </div>
@@ -345,8 +362,8 @@ const OrgIdPage = () => {
             <div className="bg-raisin border border-muted/30 rounded-xl p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-foreground">Projects</h3>
-                {(org.role === 'owner' || org.role === 'admin') && (
-                  <button className="bg-flavescent text-eerie px-4 py-2 rounded-lg font-medium hover:bg-flavescent/90 transition-colors flex items-center gap-2">
+                {(org.role === 'owner' || org.role === 'admin') &&  (org.projectCount > 0) && (
+                  <button className="bg-flavescent text-eerie px-4 py-2 rounded-lg font-medium hover:bg-flavescent/90 transition-colors flex items-center gap-2" onClick={() => setCreateProjectModal(true)}>
                     <Plus className="h-4 w-4" />
                     New Project
                   </button>
@@ -363,12 +380,22 @@ const OrgIdPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {projects && projects.length > 0 ? (
                     projects.map((project) => (
-                      <div key={project.id} className="bg-eerie border border-muted/30 rounded-lg p-4 hover:bg-onyx transition-colors cursor-pointer">
+                      <div
+                        key={project.id}
+                        onClick={() => router.push(`/dashboard/projects/${project.id}`)}
+                        className="bg-eerie border border-muted/30 rounded-lg p-4 hover:bg-onyx transition-colors cursor-pointer"
+                      >
                         <div className="flex items-start justify-between mb-3">
                           <div className="w-10 h-10 bg-blue/20 rounded-lg flex items-center justify-center">
                             <Folder className="h-5 w-5 text-blue" />
                           </div>
-                          <button className="text-muted-foreground hover:text-foreground">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(`/dashboard/projects/${project.id}`);
+                            }}
+                            className="text-muted-foreground hover:text-foreground"
+                          >
                             <ExternalLink className="h-4 w-4" />
                           </button>
                         </div>
@@ -390,7 +417,7 @@ const OrgIdPage = () => {
                       <h4 className="text-lg font-medium text-foreground mb-2">No projects yet</h4>
                       <p className="text-muted-foreground mb-4">Create your first project to get started</p>
                       {(org.role === 'owner' || org.role === 'admin') && (
-                        <button className="bg-flavescent text-eerie px-4 py-2 rounded-lg font-medium hover:bg-flavescent/90 transition-colors flex items-center gap-2 mx-auto">
+                        <button className="bg-flavescent text-eerie px-4 py-2 rounded-lg font-medium hover:bg-flavescent/90 transition-colors flex items-center gap-2 mx-auto" onClick={() => setCreateProjectModal(true)}>
                           <Plus className="h-4 w-4" />
                           Create Project
                         </button>
@@ -506,7 +533,7 @@ const OrgIdPage = () => {
                       disabled={org.role !== 'owner'}
                     />
                   </div>
-                  <div>
+                  {/* <div>
                     <label className="block text-sm font-medium text-foreground mb-1">
                       Slug
                     </label>
@@ -516,8 +543,8 @@ const OrgIdPage = () => {
                       className="w-full bg-eerie border border-muted/30 rounded-lg px-3 py-2 text-foreground focus:outline-none focus:border-blue/50"
                       disabled={org.role !== 'owner'}
                     />
-                  </div>
-                  <div>
+                  </div> */}
+                  {/* <div>
                     <label className="block text-sm font-medium text-foreground mb-1">
                       Description
                     </label>
@@ -527,7 +554,7 @@ const OrgIdPage = () => {
                       className="w-full bg-eerie border border-muted/30 rounded-lg px-3 py-2 text-foreground focus:outline-none focus:border-blue/50 resize-none"
                       disabled={org.role !== 'owner'}
                     />
-                  </div>
+                  </div> */}
                   {org.role === 'owner' && (
                     <button className="bg-flavescent text-eerie px-4 py-2 rounded-lg font-medium hover:bg-flavescent/90 transition-colors">
                       Save Changes
@@ -587,12 +614,12 @@ const OrgIdPage = () => {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Quick Actions */}
-          <div className="bg-raisin border border-muted/30 rounded-xl p-6">
+          {/* <div className="bg-raisin border border-muted/30 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
             <div className="space-y-2">
               {(org.role === 'owner' || org.role === 'admin') && (
                 <>
-                  <button className="w-full bg-eerie hover:bg-onyx border border-muted/30 rounded-lg p-3 text-left transition-colors flex items-center gap-3">
+                  <button className="w-full bg-eerie hover:bg-onyx border border-muted/30 rounded-lg p-3 text-left transition-colors flex items-center gap-3" onClick={() => setCreateProjectModal(true)}>
                     <Folder className="h-5 w-5 text-blue" />
                     <div>
                       <div className="font-medium text-foreground">New Project</div>
@@ -619,7 +646,7 @@ const OrgIdPage = () => {
                 </div>
               </button>
             </div>
-          </div>
+          </div> */}
 
           {/* Recent Members */}
           <div className="bg-raisin border border-muted/30 rounded-xl p-6">

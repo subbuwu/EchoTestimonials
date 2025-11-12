@@ -1,6 +1,11 @@
 import { clerkMiddleware } from '@clerk/nextjs/server';
 
-export default clerkMiddleware();
+export default clerkMiddleware((auth, req) => {
+  // Skip auth for embed routes
+  if (req.nextUrl.pathname.startsWith('/embed/')) {
+    return;
+  }
+});
 
 export const config = {
   matcher: [

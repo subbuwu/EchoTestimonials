@@ -1,0 +1,4533 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+================================================================
+File Summary
+================================================================
+
+Purpose:
+--------
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+
+File Format:
+------------
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  a. A separator line (================)
+  b. The file path (File: path/to/file)
+  c. Another separator line
+  d. The full contents of the file
+  e. A blank line
+
+Usage Guidelines:
+-----------------
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+
+Notes:
+------
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+
+
+================================================================
+Directory Structure
+================================================================
+app/
+  dashboard/
+    orgs/
+      [slug]/
+        page.tsx
+    projects/
+      [id]/
+        page.tsx
+    layout.tsx
+    page.tsx
+  fonts/
+    Circular/
+      Read Me.txt
+      www.dfonts.org.url
+    MonaSans/
+      LICENSE
+  sign-in/
+    [[...sign-in]]/
+      page.tsx
+  globals.css
+  layout.tsx
+  page.tsx
+components/
+  Dashboard/
+    CreateProjectModal.tsx
+  Landing/
+    AnimatedLandingContent.tsx
+    Footer.tsx
+    LandingFeatures.tsx
+    LandingHero.tsx
+    ShiningCardSection.tsx
+  magicui/
+    rainbow-button.tsx
+  ui/
+    alert.tsx
+    badge.tsx
+    button.tsx
+    card.tsx
+    dialog.tsx
+    dropdown-menu.tsx
+    input.tsx
+    label.tsx
+    neon-gradient-card.tsx
+    pulsating-button.tsx
+    scroll-area.tsx
+    select.tsx
+    sheet.tsx
+    switch.tsx
+    textarea.tsx
+    tooltip.tsx
+  Appbar.tsx
+  HeaderNav.tsx
+  Sidebar.tsx
+  UserAvatar.tsx
+  UserMenu.tsx
+config/
+  index.ts
+hooks/
+  useAuth.ts
+  useProject.ts
+lib/
+  api.ts
+  utils.ts
+providers/
+  index.tsx
+services/
+  orgsServices.ts
+  projectServices.ts
+types/
+  Orgs.ts
+  User.ts
+.env.example
+.eslintrc.json
+.gitignore
+components.json
+middleware.ts
+next-auth.d.ts
+next.config.mjs
+package.json
+postcss.config.mjs
+README.md
+tailwind.config.ts
+tsconfig.json
+
+================================================================
+Files
+================================================================
+
+================
+File: app/dashboard/orgs/[slug]/page.tsx
+================
+'use client'
+import { useParams, useRouter } from 'next/navigation'
+import React, { useState } from 'react'
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@clerk/nextjs";
+import { 
+  getOrganizationBySlug, 
+  getOrgMembers, 
+  getOrgProjects 
+} from "@/services/orgsServices";
+import { 
+  Organization,
+  OrganizationMember,
+  Project,
+  OrgRole
+} from "@/types/Orgs";
+
+import { 
+  Building2, 
+  Users, 
+  Folder, 
+  Settings, 
+  Crown, 
+  Shield, 
+  User,
+  Plus,
+  Search,
+  MoreHorizontal,
+  Calendar,
+  Globe,
+  Lock,
+  ChevronRight,
+  Activity,
+  UserPlus,
+  Copy,
+  ExternalLink
+} from "lucide-react";
+import { CreateProjectModal } from "@/components/Dashboard/CreateProjectModal";
+const OrgIdPage = () => {
+  const { slug } = useParams<{ slug: string }>();
+  const router = useRouter();
+  const { getToken } = useAuth();
+  const [activeTab, setActiveTab] = useState('overview');
+  const [createProjectModal, setCreateProjectModal] = useState(false);
+  // Queries
+  const { data: org, isLoading: orgLoading, error: orgError } = useQuery<Organization>({
+    queryKey: ["org", slug],
+    queryFn: async () => {
+      const token = await getToken();
+      return getOrganizationBySlug(slug, token!);
+    },
+    enabled: !!slug
+  });
+
+  const { data: members, isLoading: membersLoading } = useQuery<OrganizationMember[]>({
+    queryKey: ["org-members", slug],
+    queryFn: async () => {
+      const token = await getToken();
+      return getOrgMembers(slug, token!);
+    },
+    enabled: !!slug && (activeTab === 'members' || activeTab === 'overview')
+  });
+
+  const { data: projects, isLoading: projectsLoading } = useQuery<Project[]>({
+    queryKey: ["org-projects", slug],
+    queryFn: async () => {
+      const token = await getToken();
+      return getOrgProjects(slug, token!);
+    },
+    enabled: !!slug && (activeTab === 'projects' || activeTab === 'overview')
+  });
+
+  const getRoleIcon = (role: OrgRole) => {
+    switch (role) {
+      case 'owner':
+        return <Crown className="h-4 w-4 text-flavescent" />;
+      case 'admin':
+        return <Shield className="h-4 w-4 text-blue" />;
+      default:
+        return <User className="h-4 w-4 text-muted-foreground" />;
+  }
+  };
+
+  const getRoleColor = (role: OrgRole) => {
+    switch (role) {
+      case 'owner':
+        return 'bg-flavescent/20 text-flavescent border-flavescent/30';
+      case 'admin':
+        return 'bg-blue/20 text-blue border-blue/30';
+      default:
+        return 'bg-muted/20 text-muted-foreground border-muted/30';
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const tabs = [
+    { id: 'overview', label: 'Overview', icon: Activity },
+    { id: 'projects', label: 'Projects', icon: Folder },
+    { id: 'members', label: 'Members', icon: Users },
+    // { id: 'settings', label: 'Settings', icon: Settings },
+  ];
+
+  if (orgLoading) {
+    return (
+      <div className="animate-pulse space-y-6 p-6">
+        <div className="h-32 bg-raisin rounded-xl"></div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 h-96 bg-raisin rounded-xl"></div>
+          <div className="h-96 bg-raisin rounded-xl"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (orgError || !org) {
+    return (
+      <div className="text-center py-12">
+        <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-foreground mb-2">
+          Organization not found
+        </h3>
+        <p className="text-muted-foreground">
+          The organization you're looking for doesn't exist or you don't have access to it.
+        </p>
+      </div>
+    );
+  }
+
+  // const copyToClipboard = async (text: string) => {
+  //   try {
+  //     await navigator.clipboard.writeText(text);
+  //     // You could add a toast notification here
+  //   } catch (err) {
+  //     console.error('Failed to copy text: ', err);
+  //   }
+  // };
+
+  return (
+    <div className="space-y-6 p-6">
+      <CreateProjectModal open={createProjectModal} setOpen={setCreateProjectModal} />
+      {/* Header */}
+      <div className="p-3 bg-eerie border-b border-muted/30">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                <span className="cursor-pointer" onClick={() => router.push('/dashboard')}>Organizations</span> <ChevronRight className="h-4 w-4" /> <span>{org.name}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      <div className="bg-raisin border border-muted/30 rounded-xl p-6">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-4">
+            {/* <div className="w-16 h-16 bg-gradient-to-br from-blue to-flavescent rounded-xl flex items-center justify-center">
+              <Building2 className="h-8 w-8 text-eerie" />
+            </div> */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <h1 className="text-3xl font-bold text-foreground">{org.name}</h1>
+                <div className={`px-2 py-1 rounded-lg border text-xs font-medium flex items-center gap-1 ${getRoleColor(org.role)}`}>
+                  {getRoleIcon(org.role)}
+                  {org.role}
+                </div>
+              </div>
+              <div className="flex items-center gap-4 text-muted-foreground text-sm">
+                {/* <div className="flex items-center gap-1">
+                  <span>@{org.slug}</span>
+                  <button 
+                    onClick={() => copyToClipboard(org.slug)}
+                    className="ml-0.5 hover:text-foreground"
+                  >
+                    <Copy className="h-3 w-3" />
+                  </button>
+                </div> */}
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-4 w-4" />
+                  <span>Created {formatDate(org.createdAt)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* <div className="flex items-center gap-2">
+            <button className="bg-eerie hover:bg-onyx border border-muted/30 rounded-lg px-4 py-2 text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
+              <MoreHorizontal className="h-4 w-4" />
+            </button>
+            {(org.role === 'owner' || org.role === 'admin') && (
+              <button className="bg-flavescent text-eerie px-4 py-2 rounded-lg font-medium hover:bg-flavescent/90 transition-colors flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Invite Members
+              </button>
+            )}
+          </div> */}
+        </div>
+
+        {/* Stats
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-muted/30">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-flavescent">{org.projectCount}</div>
+            <div className="text-muted-foreground text-sm">Projects</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-blue">{org.memberCount}</div>
+            <div className="text-muted-foreground text-sm">Members</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-peach">24</div>
+            <div className="text-muted-foreground text-sm">Active Tasks</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-pink">3</div>
+            <div className="text-muted-foreground text-sm">Issues</div>
+          </div>
+        </div> */}
+      </div>
+
+      {/* Navigation Tabs */}
+      <div className="border-b border-muted/30">
+        <nav className="flex space-x-8">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === tab.id
+                  ? 'border-blue text-blue'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted/50'
+              }`}
+            >
+              <tab.icon className="h-4 w-4" />
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Tab Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content */}
+        <div className="lg:col-span-2 space-y-6">
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
+              {/* Recent Projects */}
+              <div className="bg-raisin border border-muted/30 rounded-xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-foreground">Recent Projects</h3>
+                  <button 
+                    onClick={() => setActiveTab('projects')}
+                    className="text-blue hover:text-blue/80 text-sm flex items-center gap-1"
+                  >
+                    View all <ChevronRight className="h-3 w-3" />
+                  </button>
+                </div>
+                {projectsLoading ? (
+                  <div className="space-y-3">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="h-16 bg-eerie animate-pulse rounded-lg"></div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {projects && projects.length > 0 ? (
+                      projects.slice(0, 3).map((project) => (
+                        <div key={project.id} className="flex items-center gap-3 p-3 bg-eerie rounded-lg hover:bg-onyx transition-colors cursor-pointer">
+                          <div className="w-10 h-10 bg-blue/20 rounded-lg flex items-center justify-center">
+                            <Folder className="h-5 w-5 text-blue" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-medium text-foreground">{project.name}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {project.domain && (
+                                <div className="flex items-center gap-1">
+                                  <Globe className="h-3 w-3" />
+                                  {project.domain}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {formatDate(project.createdAt)}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-12">
+                        <Folder className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <h4 className="text-lg font-medium text-foreground mb-2">No projects yet</h4>
+                        <p className="text-muted-foreground mb-4">Create your first project to get started</p>
+                        {(org.role === 'owner' || org.role === 'admin') && (
+                          <button className="bg-flavescent text-eerie px-4 py-2 rounded-lg font-medium hover:bg-flavescent/90 transition-colors flex items-center gap-2 mx-auto" onClick={() => setCreateProjectModal(true)}>
+                            <Plus className="h-4 w-4" />
+                            Create Project
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Recent Activity */}
+              <div className="bg-raisin border border-muted/30 rounded-xl p-6">
+                <h3 className="text-lg font-semibold text-foreground mb-4">Recent Activity</h3>
+                <div className="space-y-4">
+                  {members && members.slice(0, 3).map((member, index) => (
+                    <div key={member.id} className="flex items-start gap-3">
+                      <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center mt-1">
+                        <UserPlus className="h-4 w-4 text-green-500" />
+                      </div>
+                      <div>
+                        <div className="text-foreground">
+                          {member.firstName && member.lastName 
+                            ? `${member.firstName} ${member.lastName}` 
+                            : member.email
+                          } joined the organization
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {formatDate(member.joinedAt)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {projects && projects.slice(0, 2).map((project) => (
+                    <div key={project.id} className="flex items-start gap-3">
+                      <div className="w-8 h-8 bg-blue/20 rounded-full flex items-center justify-center mt-1">
+                        <Folder className="h-4 w-4 text-blue" />
+                      </div>
+                      <div>
+                        <div className="text-foreground">New project "{project.name}" created</div>
+                        <div className="text-sm text-muted-foreground">
+                          {formatDate(project.createdAt)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {(!members || members.length === 0) && (!projects || projects.length === 0) && (
+                    <div className="text-center py-8">
+                      <Activity className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-muted-foreground">No recent activity</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'projects' && (
+            <div className="bg-raisin border border-muted/30 rounded-xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-foreground">Projects</h3>
+                {(org.role === 'owner' || org.role === 'admin') &&  (org.projectCount > 0) && (
+                  <button className="bg-flavescent text-eerie px-4 py-2 rounded-lg font-medium hover:bg-flavescent/90 transition-colors flex items-center gap-2" onClick={() => setCreateProjectModal(true)}>
+                    <Plus className="h-4 w-4" />
+                    New Project
+                  </button>
+                )}
+              </div>
+              
+              {projectsLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="h-32 bg-eerie animate-pulse rounded-lg"></div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {projects && projects.length > 0 ? (
+                    projects.map((project) => (
+                      <div key={project.id} className="bg-eerie border border-muted/30 rounded-lg p-4 hover:bg-onyx transition-colors cursor-pointer">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="w-10 h-10 bg-blue/20 rounded-lg flex items-center justify-center">
+                            <Folder className="h-5 w-5 text-blue" />
+                          </div>
+                          <button className="text-muted-foreground hover:text-foreground">
+                            <ExternalLink className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <h4 className="font-semibold text-foreground mb-1">{project.name}</h4>
+                        {project.domain && (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
+                            <Globe className="h-3 w-3" />
+                            {project.domain}
+                          </div>
+                        )}
+                        <div className="text-xs text-muted-foreground">
+                          Created {formatDate(project.createdAt)}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="col-span-full text-center py-12">
+                      <Folder className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h4 className="text-lg font-medium text-foreground mb-2">No projects yet</h4>
+                      <p className="text-muted-foreground mb-4">Create your first project to get started</p>
+                      {(org.role === 'owner' || org.role === 'admin') && (
+                        <button className="bg-flavescent text-eerie px-4 py-2 rounded-lg font-medium hover:bg-flavescent/90 transition-colors flex items-center gap-2 mx-auto" onClick={() => setCreateProjectModal(true)}>
+                          <Plus className="h-4 w-4" />
+                          Create Project
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'members' && (
+            <div className="bg-raisin border border-muted/30 rounded-xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-foreground">Members</h3>
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <input
+                      type="text"
+                      placeholder="Search members..."
+                      className="bg-eerie border border-muted/30 rounded-lg pl-10 pr-4 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue/50"
+                    />
+                  </div>
+                  {(org.role === 'owner' || org.role === 'admin') && (
+                    <button className="bg-flavescent text-eerie px-4 py-2 rounded-lg font-medium hover:bg-flavescent/90 transition-colors flex items-center gap-2">
+                      <UserPlus className="h-4 w-4" />
+                      Invite
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {membersLoading ? (
+                <div className="space-y-3">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="flex items-center gap-3 p-3 bg-eerie animate-pulse rounded-lg">
+                      <div className="w-10 h-10 bg-muted rounded-full"></div>
+                      <div className="flex-1 space-y-1">
+                        <div className="h-4 bg-muted rounded w-32"></div>
+                        <div className="h-3 bg-muted rounded w-48"></div>
+                      </div>
+                      <div className="h-6 bg-muted rounded w-16"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {members && members.length > 0 ? (
+                    members.map((member) => (
+                      <div key={member.id} className="flex items-center gap-3 p-3 bg-eerie hover:bg-onyx rounded-lg transition-colors">
+                        <div className="relative">
+                          {member.imageUrl ? (
+                            <img 
+                              src={member.imageUrl} 
+                              alt={`${member.firstName} ${member.lastName}`}
+                              className="w-10 h-10 rounded-full"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue to-flavescent rounded-full flex items-center justify-center">
+                              <User className="h-5 w-5 text-eerie" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-foreground">
+                            {member.firstName && member.lastName 
+                              ? `${member.firstName} ${member.lastName}` 
+                              : member.email
+                            }
+                          </div>
+                          <div className="text-sm text-muted-foreground">{member.email}</div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className={`px-2 py-1 rounded-lg border text-xs font-medium flex items-center gap-1 ${getRoleColor(member.role)}`}>
+                            {getRoleIcon(member.role)}
+                            {member.role}
+                          </div>
+                          {(org.role === 'owner' || (org.role === 'admin' && member.role !== 'owner')) && (
+                            <button className="text-muted-foreground hover:text-foreground">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-12">
+                      <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h4 className="text-lg font-medium text-foreground mb-2">No members found</h4>
+                      <p className="text-muted-foreground">Invite team members to collaborate</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'settings' && (
+            <div className="space-y-6">
+              {/* General Settings */}
+              <div className="bg-raisin border border-muted/30 rounded-xl p-6">
+                <h3 className="text-lg font-semibold text-foreground mb-4">General Settings</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">
+                      Organization Name
+                    </label>
+                    <input
+                      type="text"
+                      defaultValue={org.name}
+                      className="w-full bg-eerie border border-muted/30 rounded-lg px-3 py-2 text-foreground focus:outline-none focus:border-blue/50"
+                      disabled={org.role !== 'owner'}
+                    />
+                  </div>
+                  {/* <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">
+                      Slug
+                    </label>
+                    <input
+                      type="text"
+                      defaultValue={org.slug}
+                      className="w-full bg-eerie border border-muted/30 rounded-lg px-3 py-2 text-foreground focus:outline-none focus:border-blue/50"
+                      disabled={org.role !== 'owner'}
+                    />
+                  </div> */}
+                  {/* <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      rows={3}
+                      placeholder="Add a description for your organization..."
+                      className="w-full bg-eerie border border-muted/30 rounded-lg px-3 py-2 text-foreground focus:outline-none focus:border-blue/50 resize-none"
+                      disabled={org.role !== 'owner'}
+                    />
+                  </div> */}
+                  {org.role === 'owner' && (
+                    <button className="bg-flavescent text-eerie px-4 py-2 rounded-lg font-medium hover:bg-flavescent/90 transition-colors">
+                      Save Changes
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Access & Permissions */}
+              <div className="bg-raisin border border-muted/30 rounded-xl p-6">
+                <h3 className="text-lg font-semibold text-foreground mb-4">Access & Permissions</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium text-foreground">Public Organization</div>
+                      <div className="text-sm text-muted-foreground">Allow anyone to view this organization</div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" className="sr-only peer" disabled={org.role !== 'owner'} />
+                      <div className="w-11 h-6 bg-muted/30 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue"></div>
+                    </label>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium text-foreground">Allow Member Invites</div>
+                      <div className="text-sm text-muted-foreground">Let members invite others to the organization</div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" className="sr-only peer" disabled={org.role !== 'owner'} />
+                      <div className="w-11 h-6 bg-muted/30 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue"></div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Danger Zone */}
+              {org.role === 'owner' && (
+                <div className="bg-raisin border border-pink/30 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-pink mb-4">Danger Zone</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-pink/10 border border-pink/30 rounded-lg">
+                      <div>
+                        <div className="font-medium text-foreground">Delete Organization</div>
+                        <div className="text-sm text-muted-foreground">This action cannot be undone</div>
+                      </div>
+                      <button className="bg-pink text-white px-4 py-2 rounded-lg font-medium hover:bg-pink/90 transition-colors">
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Quick Actions */}
+          {/* <div className="bg-raisin border border-muted/30 rounded-xl p-6">
+            <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
+            <div className="space-y-2">
+              {(org.role === 'owner' || org.role === 'admin') && (
+                <>
+                  <button className="w-full bg-eerie hover:bg-onyx border border-muted/30 rounded-lg p-3 text-left transition-colors flex items-center gap-3" onClick={() => setCreateProjectModal(true)}>
+                    <Folder className="h-5 w-5 text-blue" />
+                    <div>
+                      <div className="font-medium text-foreground">New Project</div>
+                      <div className="text-sm text-muted-foreground">Create a new project</div>
+                    </div>
+                  </button>
+                  <button className="w-full bg-eerie hover:bg-onyx border border-muted/30 rounded-lg p-3 text-left transition-colors flex items-center gap-3">
+                    <UserPlus className="h-5 w-5 text-peach" />
+                    <div>
+                      <div className="font-medium text-foreground">Invite Member</div>
+                      <div className="text-sm text-muted-foreground">Add team members</div>
+                    </div>
+                  </button>
+                </>
+              )}
+              <button 
+                onClick={() => setActiveTab('settings')}
+                className="w-full bg-eerie hover:bg-onyx border border-muted/30 rounded-lg p-3 text-left transition-colors flex items-center gap-3"
+              >
+                <Settings className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <div className="font-medium text-foreground">Organization Settings</div>
+                  <div className="text-sm text-muted-foreground">Manage preferences</div>
+                </div>
+              </button>
+            </div>
+          </div> */}
+
+          {/* Recent Members */}
+          <div className="bg-raisin border border-muted/30 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-foreground">Recent Members</h3>
+              <button 
+                onClick={() => setActiveTab('members')}
+                className="text-blue hover:text-blue/80 text-sm"
+              >
+                View all
+              </button>
+            </div>
+            <div className="space-y-3">
+              {members && members.length > 0 ? (
+                members.slice(0, 3).map((member) => (
+                  <div key={member.id} className="flex items-center gap-3">
+                    {member.imageUrl ? (
+                      <img 
+                        src={member.imageUrl} 
+                        alt={`${member.firstName} ${member.lastName}`}
+                        className="w-8 h-8 rounded-full"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 bg-gradient-to-br from-blue to-flavescent rounded-full flex items-center justify-center">
+                        <User className="h-4 w-4 text-eerie" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-foreground truncate">
+                        {member.firstName && member.lastName 
+                          ? `${member.firstName} ${member.lastName}` 
+                          : member.email
+                        }
+                      </div>
+                      <div className="text-xs text-muted-foreground">{member.role}</div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4">
+                  <Users className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">No members yet</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Organization Info */}
+          <div className="bg-raisin border border-muted/30 rounded-xl p-6">
+            <h3 className="text-lg font-semibold text-foreground mb-4">Organization Info</h3>
+            <div className="space-y-3">
+              <div>
+                <div className="text-sm font-medium text-muted-foreground">Organization ID</div>
+                <div className="text-sm text-foreground font-mono bg-eerie rounded px-2 py-1 mt-1">
+                  {org.id}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm font-medium text-muted-foreground">Created</div>
+                <div className="text-sm text-foreground">
+                  {formatDate(org.createdAt)}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm font-medium text-muted-foreground">Your Role</div>
+                <div className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${getRoleColor(org.role)}`}>
+                  {getRoleIcon(org.role)}
+                  {org.role}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default OrgIdPage;
+
+================
+File: app/dashboard/projects/[id]/page.tsx
+================
+import React from 'react'
+
+const ProjectsIdPage = () => {
+  return (
+    <div>
+        
+    </div>
+  )
+}
+
+export default ProjectsIdPage
+
+================
+File: app/dashboard/layout.tsx
+================
+import Sidebar from "@/components/Sidebar";
+
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+
+  return (
+      <div className="bg-chinese flex min-h-screen flex-col text-foreground font-primary_regular lg:flex-row">
+        <Sidebar />
+          <main className="flex-1 overflow-y-auto">
+            <div className="">
+              {children}
+            </div>
+          </main>
+      </div>
+  );
+}
+
+================
+File: app/dashboard/page.tsx
+================
+"use client";
+import { useQuery } from "@tanstack/react-query";
+import { getOrgs } from "@/services/orgsServices";
+import { useAuth } from "@clerk/nextjs";
+import { useState, useMemo } from "react";
+import { OrgSummary } from "@/types/Orgs";
+import { 
+  Building2, 
+  Users, 
+  Settings, 
+  Crown, 
+  Shield, 
+  User,
+  Plus,
+  Search,
+  Filter,
+  ChevronRight,
+  Folder,
+  Star,
+  Clock,
+  Archive,
+  Grid3X3,
+  List,
+  TrendingUp,
+  Calendar,
+  Activity,
+  BarChart3,
+  PieChart,
+  ArrowUpRight,
+  MoreHorizontal,
+  BookOpen,
+  Target,
+  Zap,
+  CheckCircle2,
+  AlertCircle,
+  DollarSign,
+  Briefcase,
+  Globe,
+  Layers
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+
+// Enhanced types for better data structure
+interface EnhancedOrgSummary extends OrgSummary {
+  lastActivity?: string;
+  memberCount?: number;
+  projectCount?: number;
+  tasksCompleted?: number;
+  revenue?: string;
+  growth?: number;
+  status?: 'active' | 'inactive' | 'pending';
+  category?: string;
+  featured?: boolean;
+}
+
+type ViewMode = 'grid' | 'list';
+type FilterType = 'all' | 'owned' | 'member';
+
+// Mock data enhancement for demonstration
+const enhanceOrg = (org: OrgSummary): EnhancedOrgSummary => ({
+  ...org,
+  lastActivity: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+  memberCount: Math.floor(Math.random() * 50) + 5,
+  projectCount: Math.floor(Math.random() * 20) + 1,
+  tasksCompleted: Math.floor(Math.random() * 100) + 10,
+  revenue: `$${(Math.random() * 100 + 10).toFixed(1)}k`,
+  growth: Math.floor(Math.random() * 40) - 10,
+  status: ['active', 'inactive', 'pending'][Math.floor(Math.random() * 3)] as any,
+  category: ['Technology', 'Finance', 'Healthcare', 'Education', 'Marketing'][Math.floor(Math.random() * 5)],
+  featured: Math.random() > 0.7
+});
+
+export default function DashboardPage() {
+  const { getToken } = useAuth();
+  const router = useRouter();
+  const [selectedOrg, setSelectedOrg] = useState<EnhancedOrgSummary | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeFilter, setActiveFilter] = useState<FilterType>("all");
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [showFilters, setShowFilters] = useState(false);
+
+  const { data: orgs, isLoading, error } = useQuery({
+    queryKey: ["orgs"],
+    queryFn: async () => {
+      const token = await getToken();
+      const orgData = await getOrgs(token!);
+      return orgData.map(enhanceOrg);
+    }
+  });
+
+  // Enhanced filtering and statistics
+  const statistics = useMemo(() => {
+    if (!orgs) return null;
+    
+    const owned = orgs.filter(org => org.role === 'owner').length;
+    const admin = orgs.filter(org => org.role === 'admin').length;
+    const member = orgs.filter(org => org.role === 'member').length;
+    const active = orgs.filter(org => org.status === 'active').length;
+    const totalMembers = orgs.reduce((sum, org) => sum + (org.memberCount || 0), 0);
+    const totalProjects = orgs.reduce((sum, org) => sum + (org.projectCount || 0), 0);
+
+    return { owned, admin, member, active, totalMembers, totalProjects };
+  }, [orgs]);
+
+  const filterItems = useMemo(() => {
+    if (!orgs) return [];
+    
+    return [
+      { 
+        id: "all" as FilterType, 
+        label: "All Organizations", 
+        icon: Folder, 
+        count: orgs.length,
+        color: "text-blue-400"
+      },
+      { 
+        id: "owned" as FilterType, 
+        label: "Owned by Me", 
+        icon: Crown, 
+        count: orgs.filter(org => org.role === 'owner').length,
+        color: "text-yellow-400"
+      },
+      { 
+        id: "member" as FilterType, 
+        label: "Member", 
+        icon: User, 
+        count: orgs.filter(org => org.role === 'member').length,
+        color: "text-gray-400"
+      },
+    ];
+  }, [orgs]);
+
+  const filteredOrgs = useMemo(() => {
+    if (!orgs) return [];
+    
+    return orgs.filter(org => {
+      const matchesSearch = org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        org.slug.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (org.category && org.category.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      if (activeFilter === "all") return matchesSearch;
+      if (activeFilter === "owned") return matchesSearch && org.role === 'owner';
+      if (activeFilter === "member") return matchesSearch && org.role === 'member';
+      if (activeFilter === "recent") {
+        if (!org.lastActivity) return false;
+        const daysDiff = (Date.now() - new Date(org.lastActivity).getTime()) / (1000 * 60 * 60 * 24);
+        return matchesSearch && daysDiff < 7;
+      }
+      if (activeFilter === "favorites") return matchesSearch && org.featured;
+      
+      return matchesSearch;
+    });
+  }, [orgs, searchTerm, activeFilter]);
+
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case 'owner':
+        return <Crown className="h-4 w-4 text-yellow-400" />;
+      case 'admin':
+        return <Shield className="h-4 w-4 text-blue-400" />;
+      default:
+        return <User className="h-4 w-4 text-gray-400" />;
+    }
+  };
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'owner':
+        return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
+      case 'admin':
+        return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+      default:
+        return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-500/10 text-green-400 border-green-500/20';
+      case 'inactive':
+        return 'bg-red-500/10 text-red-400 border-red-500/20';
+      case 'pending':
+        return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
+      default:
+        return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
+    }
+  };
+
+  const formatLastActivity = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 24) {
+      return `${diffInHours}h ago`;
+    } else {
+      const diffInDays = Math.floor(diffInHours / 24);
+      return `${diffInDays}d ago`;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen bg-gray-950">
+        {/* Left Panel Skeleton */}
+        <div className="w-80 bg-gray-900 border-r border-gray-800 p-6">
+          <div className="animate-pulse space-y-4">
+            <div className="h-6 bg-gray-800 rounded w-32"></div>
+            <div className="space-y-2">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-12 bg-gray-800 rounded-lg"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+        
+        {/* Main Content Skeleton */}
+        <div className="flex-1 p-6">
+          <div className="animate-pulse space-y-6">
+            <div className="h-8 bg-gray-800 rounded w-48"></div>
+            <div className="grid grid-cols-4 gap-4 mb-8">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-24 bg-gray-800 rounded-xl"></div>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-48 bg-gray-800 rounded-xl"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-950">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
+          <div className="text-red-400 text-xl font-semibold mb-2">Error fetching organizations</div>
+          <p className="text-gray-400">Please try again later</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-screen bg-gray-950 text-gray-100">
+      {/* Enhanced Left Navigation Panel */}
+      <div className="w-80 bg-eerie  border-r border-gray-800 flex flex-col">
+        {/* Panel Header */}
+        <div className="p-6 border-b border-gray-800">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-white">Organizations</h2>
+            <button className="bg-blue-600 hover:bg-blue-700 text-white p-2.5 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg">
+              <Plus className="h-4 w-4" />
+            </button>
+          </div>
+          
+          {/* Search with enhanced styling */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search organizations..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-gray-800 border border-gray-700 rounded-xl pl-10 pr-4 py-3 text-gray-100 placeholder:text-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+            />
+          </div>
+        </div>
+
+        {/* Statistics Cards */}
+        {statistics && (
+          <div className="p-6 border-b border-gray-800">
+            <h3 className="text-sm font-medium text-gray-400 mb-4 uppercase tracking-wider">Overview</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-gray-800 p-3 rounded-xl">
+                <div className="text-2xl font-bold text-blue-400">{statistics.totalProjects}</div>
+                <div className="text-xs text-gray-400">Projects</div>
+              </div>
+              <div className="bg-gray-800 p-3 rounded-xl">
+                <div className="text-2xl font-bold text-green-400">{statistics.totalMembers}</div>
+                <div className="text-xs text-gray-400">Members</div>
+              </div>
+              <div className="bg-gray-800 p-3 rounded-xl">
+                <div className="text-2xl font-bold text-yellow-400">{statistics.owned}</div>
+                <div className="text-xs text-gray-400">Owned</div>
+              </div>
+              <div className="bg-gray-800 p-3 rounded-xl">
+                <div className="text-2xl font-bold text-purple-400">{statistics.active}</div>
+                <div className="text-xs text-gray-400">Active</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Enhanced Filter Categories */}
+        <div className="p-6 flex-1 overflow-y-auto">
+          <div className="space-y-2">
+            {filterItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveFilter(item.id)}
+                className={`w-full flex items-center justify-between p-3 rounded-xl transition-all duration-200 group ${
+                  activeFilter === item.id
+                    ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 shadow-lg'
+                    : 'hover:bg-gray-800 text-gray-400 hover:text-gray-200 border border-transparent'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <item.icon className={`h-4 w-4 ${activeFilter === item.id ? item.color : ''} group-hover:scale-110 transition-transform`} />
+                  <span className="font-medium">{item.label}</span>
+                </div>
+                <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                  activeFilter === item.id 
+                    ? 'bg-blue-500/20 text-blue-400' 
+                    : 'bg-gray-800 text-gray-400'
+                }`}>
+                  {item.count}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Enhanced Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Enhanced Header */}
+        <div className="p-6 bg-eerie border-b border-gray-800">
+          <div className="flex items-center justify-between">
+            {/* <div>
+              <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                <span className="text-base">Organizations</span>
+                {activeFilter !== 'all' && (
+                  <>
+                    <ChevronRight className="h-4 w-4" />
+                    <span className="capitalize text-blue-400 text">{filterItems.find(f => f.id === activeFilter)?.label}</span>
+                  </>
+                )}
+              </div>
+            </div> */}
+            <div className="flex items-center gap-3">
+              {/* View Mode Toggle */}
+              <div className="flex items-center bg-gray-800 rounded-xl p-1">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-2 rounded-lg transition-all ${
+                    viewMode === 'grid' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-gray-200'
+                  }`}
+                >
+                  <Grid3X3 className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-2 rounded-lg transition-all ${
+                    viewMode === 'list' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-gray-200'
+                  }`}
+                >
+                  <List className="h-4 w-4" />
+                </button>
+              </div>
+              
+              <button 
+                onClick={() => setShowFilters(!showFilters)}
+                className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-gray-300 hover:text-white transition-colors flex items-center gap-2"
+              >
+                <Filter className="h-4 w-4" />
+                Filters
+              </button>
+              <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-xl font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center gap-2 shadow-lg">
+                <Plus className="h-4 w-4" />
+                New Organization
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Organizations Content */}
+        <div className="flex-1 overflow-y-auto p-6 bg-eerie">
+          {filteredOrgs.length > 0 ? (
+            <div className={viewMode === 'grid' 
+              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" 
+              : "space-y-4"
+            }>
+              {filteredOrgs.map((org) => (
+                <div
+                  key={org.id}
+                  onClick={() => router.push(`/dashboard/orgs/${org.slug}`)}
+                  className={`
+                    group bg-raisin border border-onyx rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:border-gray-700 hover:shadow-2xl hover:shadow-blue-500/10 hover:-translate-y-1
+                    ${selectedOrg?.id === org.id 
+                      ? 'border-blue-500 ring-2 ring-blue-500/20 shadow-lg shadow-blue-500/20' 
+                      : ''
+                    }
+                    ${viewMode === 'list' ? 'flex items-center gap-6' : ''}
+                  `}
+                >
+                  {/* Organization Icon and Header */}
+                  <div className={`flex items-center ${viewMode === 'list' ? 'gap-4' : 'justify-between mb-4'}`}>
+                    <div className="relative">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 rounded-2xl flex items-center justify-center shadow-lg">
+                        <Building2 className="h-6 w-6 text-white" />
+                      </div>
+                      {org.featured && (
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center">
+                          <Star className="h-2.5 w-2.5 text-gray-900 fill-current" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    {viewMode === 'grid' && (
+                      <div className="flex gap-2">
+                        <div className={`px-2 py-1 rounded-lg border text-xs font-medium flex items-center gap-1 ${getRoleColor(org.role)}`}>
+                          {getRoleIcon(org.role)}
+                          {org.role}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Organization Info */}
+                  <div className={`${viewMode === 'list' ? 'flex-1' : 'mb-4'}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="text-lg font-semibold text-white truncate">
+                        {org.name}
+                      </h3>
+                      {org.status && (
+                        <div className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(org.status)}`}>
+                          {org.status}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-gray-400">
+                      <span>@{org.slug}</span>
+                      {org.category && (
+                        <span className="px-2 py-0.5 bg-gray-800 rounded-full text-xs">
+                          {org.category}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {viewMode === 'list' && (
+                    <div className={`px-2 py-1 rounded-lg border text-xs font-medium flex items-center gap-1 ${getRoleColor(org.role)}`}>
+                      {getRoleIcon(org.role)}
+                      {org.role}
+                    </div>
+                  )}
+
+                  {/* Enhanced Stats */}
+                  {viewMode === 'grid' && (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="flex items-center gap-2 text-gray-400">
+                          <Users className="h-4 w-4" />
+                          <span>{org.memberCount} members</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-400">
+                          <Folder className="h-4 w-4" />
+                          <span>{org.projectCount} projects</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-800">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                          <span className="text-xs text-gray-400">
+                            {org.lastActivity && formatLastActivity(org.lastActivity)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {org.growth !== undefined && (
+                            <div className={`flex items-center gap-1 text-xs ${
+                              org.growth > 0 ? 'text-green-400' : 'text-red-400'
+                            }`}>
+                              <TrendingUp className={`h-3 w-3 ${org.growth < 0 ? 'rotate-180' : ''}`} />
+                              {Math.abs(org.growth)}%
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* List view stats */}
+                  {viewMode === 'list' && (
+                    <div className="flex items-center gap-6 text-sm text-gray-400">
+                      <div className="flex items-center gap-1">
+                        <Users className="h-4 w-4" />
+                        <span>{org.memberCount}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Folder className="h-4 w-4" />
+                        <span>{org.projectCount}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-4 w-4" />
+                        <span>{org.lastActivity && formatLastActivity(org.lastActivity)}</span>
+                      </div>
+                      <ArrowUpRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20">
+              <div className="relative mb-6">
+                <div className="w-24 h-24 bg-gray-800 rounded-2xl flex items-center justify-center mx-auto">
+                  <Building2 className="h-12 w-12 text-gray-600" />
+                </div>
+                <div className="absolute top-0 right-8 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                  <Plus className="h-4 w-4 text-white" />
+                </div>
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-3">
+                {searchTerm ? 'No organizations found' : 'No organizations yet'}
+              </h3>
+              <p className="text-gray-400 mb-8 max-w-sm mx-auto">
+                {searchTerm 
+                  ? 'Try adjusting your search terms or filters to find what you\'re looking for.' 
+                  : 'Create your first organization to start collaborating with your team and managing projects.'
+                }
+              </p>
+              {!searchTerm && (
+                <button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg">
+                  Create Organization
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+================
+File: app/fonts/Circular/Read Me.txt
+================
+Downloaded from 
+
+www.Dfonts.org
+
+Thousands of Premium Fonts For Free
+
+================
+File: app/fonts/Circular/www.dfonts.org.url
+================
+[InternetShortcut]
+URL=https://www.dfonts.org/
+
+================
+File: app/fonts/MonaSans/LICENSE
+================
+Copyright (c) 2023, GitHub https://github.com/github/mona-sans
+with Reserved Font Name "Mona Sans"
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+http://scripts.sil.org/OFL
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded, 
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+"Font Software" refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+"Reserved Font Name" refers to any names specified as such after the
+copyright statement(s).
+
+"Original Version" refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+"Modified Version" refers to any derivative made by adding to, deleting,
+or substituting — in part or in whole — any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+"Author" refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION & CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.
+
+================
+File: app/sign-in/[[...sign-in]]/page.tsx
+================
+import { SignIn } from '@clerk/nextjs'
+
+export default function Page() {
+  return (
+    <div className='min-h-screen flex items-center justify-center bg-neutral-700'>
+        <SignIn />
+    </div>
+  )
+}
+
+================
+File: app/globals.css
+================
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem
+  ;
+    --color-1: oklch(66.2% 0.225 25.9);
+    --color-2: oklch(60.4% 0.26 302);
+    --color-3: oklch(69.6% 0.165 251);
+    --color-4: oklch(80.2% 0.134 225);
+    --color-5: oklch(90.7% 0.231 133)}
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%
+  ;
+    --color-1: oklch(66.2% 0.225 25.9);
+    --color-2: oklch(60.4% 0.26 302);
+    --color-3: oklch(69.6% 0.165 251);
+    --color-4: oklch(80.2% 0.134 225);
+    --color-5: oklch(90.7% 0.231 133)}
+  .theme {
+    --animate-rainbow: rainbow var(--speed, 2s) infinite linear
+  }
+}
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@theme inline {
+  @keyframes rainbow {
+  0% {
+    background-position: 0%;
+    }
+  100% {
+    background-position: 200%;
+    }
+  }
+}
+
+================
+File: app/layout.tsx
+================
+import type { Metadata } from "next";
+import { ClerkProvider } from "@clerk/nextjs";
+import "./globals.css";
+import localFont from "next/font/local";
+import { Providers } from "@/providers";
+
+
+export const metadata: Metadata = {
+  title: "EchoTestimonials",
+  description: "",
+};
+
+const monasans = localFont({
+  src: [{ path: "./fonts/MonaSans/OTF/MonaSans-Regular.otf", weight: "400" }],
+  variable: "--font-monasans",
+});
+
+const nohemiBold = localFont({
+  src: [{ path: "./fonts/Nohemi_Font/Nohemi-SemiBold-BF6438cc57db2ff.woff" }],
+  variable: "--font-nohemiBold",
+});
+
+const primary_regular = localFont({
+  src: [{ path: "./fonts/Circular/CircularStd-Book.otf" }],
+  variable: "--font-primary_regular",
+});
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body
+        className={`${monasans.variable} ${nohemiBold.variable} ${primary_regular.variable} antialiased bg-black`}
+      >
+        <ClerkProvider>
+
+          <Providers>{children}</Providers>
+        </ClerkProvider>
+      </body>
+    </html>
+  );
+}
+
+================
+File: app/page.tsx
+================
+import Appbar from "@/components/Appbar";
+import AnimatedLandingContent from "@/components/Landing/AnimatedLandingContent";
+import { auth } from "@clerk/nextjs/server";
+
+export default async function Page() {
+  const { userId } = await auth()
+  
+  return (
+    <>
+      <Appbar isAuthenticated={!!userId} />
+      <AnimatedLandingContent isAuthenticated={!!userId} />
+    </>
+  );
+}
+
+================
+File: components/Dashboard/CreateProjectModal.tsx
+================
+'use client'
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useState } from "react";
+import { createProject } from "@/services/projectServices";
+
+export function CreateProjectModal({open, setOpen}: {open: boolean, setOpen: (open: boolean) => void}) {
+
+    const [name, setName] = useState("");
+    const [domain, setDomain] = useState("");
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+    }
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <form>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">Create Project</DialogTitle>
+
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div className="grid gap-3">
+              <Label htmlFor="name-1">Name</Label>
+              <Input id="name-1" name="name" defaultValue="Pedro Duarte" />
+            </div>
+            <div className="grid gap-3">
+              <Label htmlFor="domain-1">Domain</Label>
+              <Input id="domain-1" name="domain" defaultValue="peduarte.com" />
+              <p className="text-xs text-muted-foreground">This will be the domain of your project where testimonials will be displayed (eg : https://acme.com/project-name)</p>
+              <p className="text-xs text-muted-foreground font-medium">You can also embed the testimonials on your website (you can access the embed code once testimonials are created and is live)</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button type="submit">Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </form>
+    </Dialog>
+  )
+}
+
+================
+File: components/Landing/AnimatedLandingContent.tsx
+================
+'use client';
+import React from "react";
+import { motion } from "framer-motion";
+import LandingHero from "./LandingHero";
+import LandingFeatures from "./LandingFeatures";
+import { ShiningCardSection } from "./ShiningCardSection";
+import Footer from "./Footer";
+
+const pageVariants = {
+  initial: {
+    opacity: 0,
+    y: 20,
+  },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.8,
+      ease: "easeOut",
+    },
+  },
+};
+
+const staggerChildren = {
+  animate: {
+    transition: {
+      staggerChildren: 0.2,
+    },
+  },
+};
+
+const childVariants = {
+  initial: {
+    opacity: 0,
+    y: 20,
+  },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut",
+    },
+  },
+};
+
+export default function AnimatedLandingContent({isAuthenticated} :{isAuthenticated : boolean}) {
+  return (
+    <motion.div
+      initial="initial"
+      animate="animate"
+      variants={pageVariants}
+    >
+      <motion.div
+        className="flex justify-center w-full items-center mt-10"
+        variants={childVariants}
+      >
+        <LandingHero isAuthenticated={isAuthenticated}/>
+      </motion.div>
+      <motion.div className="md:mt-28 mt-24 lg:mt-40 lg:px-0 px-4" variants={staggerChildren}>
+        <motion.h2
+          className="text-white mx-auto max-w-7xl font-primary_regular font-medium md:text-6xl text-3xl"
+          variants={childVariants}
+        >
+          Features
+        </motion.h2>
+        <motion.div variants={childVariants}>
+          <LandingFeatures />
+        </motion.div>
+      </motion.div>
+      <motion.div>
+        <ShiningCardSection/>
+      </motion.div>
+      <Footer/>
+    </motion.div>
+  );
+}
+
+================
+File: components/Landing/Footer.tsx
+================
+import { IconHeartFilled,IconBrandX,IconBrandGithub,IconBrandLinkedin } from '@tabler/icons-react'
+import Link from 'next/link'
+import React from 'react'
+
+type Props = {}
+
+const Footer = (props: Props) => {
+  return (
+    <footer className='font-primary_regular flex  text-white h-full bg-zinc-900 bg-clip-padding backdrop-filter z-[100] backdrop-blur-sm bg-opacity-30 md:px-16 px-6 items-center justify-between py-6 border-t-2 border-zinc-800'>
+        <div>
+        Created with <IconHeartFilled className='inline-block'/> by <span className=''>Subramanian</span>
+        </div>
+
+        <div>
+        <div className="flex items-center space-x-4">
+          <Link href="https://github.com/subbuwu" target="_blank" rel="noopener noreferrer" className="hover:opacity-90 transition-all duration-150">
+            <IconBrandGithub className="h-6 w-6" />
+            <span className="sr-only">GitHub</span>
+          </Link>
+          <Link href="https://twitter.com/subbu67007741" target="_blank" rel="noopener noreferrer" className="hover:opacity-90 transition-all duration-150">
+            <IconBrandX className="h-6 w-6" />
+            <span className="sr-only">Twitter</span>
+          </Link>
+          <Link href="https://www.linkedin.com/in/subramanian-narayanan-52900624b" target="_blank" rel="noopener noreferrer" className="hover:placeholder-opacity-90 transition-all duration-150">
+            <IconBrandLinkedin className="h-6 w-6" />
+            <span className="sr-only">LinkedIn</span>
+          </Link>
+        </div>
+        </div>
+    </footer>
+  )
+}
+
+export default Footer
+
+================
+File: components/Landing/LandingFeatures.tsx
+================
+import React from "react";
+import { cn } from "@/lib/utils";
+import {
+  IconAdjustmentsBolt,
+  IconCloud,
+  IconCurrencyDollar,
+  IconEaseInOut,
+  IconHeart,
+  IconHelp,
+  IconRouteAltLeft,
+  IconTerminal2,
+} from "@tabler/icons-react";
+
+const LandingFeatures = () => {
+  const features = [
+    {
+      title: "Easy for everyone",
+      description:
+        "So simple, even your grandma could collect reviews (no offense, grandma).",
+      icon: <IconEaseInOut />,
+    },
+    {
+      title: "100% Free",
+      description:
+        "Yep, you read that right. It's free. No tricks, no hidden fees, no selling your soul.",
+      icon: <IconCurrencyDollar />,
+    },
+    {
+      title: "Always working",
+      description: "Like your favorite 24/7 diner, but for reviews. Always open!",
+      icon: <IconCloud />,
+    },
+    {
+      title: "Share the love",
+      description: "One account, many users. Because sharing is caring.",
+      icon: <IconRouteAltLeft />,
+    },
+    {
+      title: "Help when you need it",
+      description:
+        "Our support team is always here. Well, our chatbot is. Same thing, right?",
+      icon: <IconHelp />,
+    },
+    {
+      title: "Make it yours",
+      description:
+        "Customize everything. Make your reviews page as unique as your fingerprint.",
+      icon: <IconAdjustmentsBolt />,
+    },
+    {
+      title: "Safe and sound",
+      description: "We guard your data like a dragon guards its gold. Rawr!",
+      icon: <IconTerminal2 />,
+    },
+    {
+      title: "And much more!",
+      description: "Honestly, we're still figuring out what else. But it'll be great!",
+      icon: <IconHeart />,
+    },
+  ];
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4  relative z-10 py-10 pt-0 lg:py-10 max-w-7xl mx-auto">
+      {features.map((feature, index) => (
+        <Feature key={feature.title} {...feature} index={index} />
+      ))}
+    </div>
+  );
+}
+
+const Feature = ({
+  title,
+  description,
+  icon,
+  index,
+}: {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  index: number;
+}) => {
+  return (
+    <div
+      className={cn(
+        "flex flex-col lg:border-r  py-10 relative group/feature border-neutral-800",
+        (index === 0 || index === 4) && "lg:border-l border-neutral-800",
+        index < 4 && "lg:border-b border-neutral-800"
+      )}
+    >
+      {index < 4 && (
+        <div className="opacity-0 group-hover/feature:opacity-100 transition duration-200 absolute inset-0 h-full w-full bg-gradient-to-t from-neutral-800 to-transparent pointer-events-none" />
+      )}
+      {index >= 4 && (
+        <div className="opacity-0 group-hover/feature:opacity-100 transition duration-200 absolute inset-0 h-full w-full bg-gradient-to-b from-neutral-800 to-transparent pointer-events-none" />
+      )}
+      <div className="mb-4 relative z-10 px-10 text-neutral-400">
+        {icon}
+      </div>
+      <div className="text-lg font-bold mb-2 relative z-10 px-10">
+        <div className="absolute left-0 inset-y-0 h-6 group-hover/feature:h-8 w-1 rounded-tr-full rounded-br-full bg-neutral-700 group-hover/feature:bg-blue-500 transition-all duration-200 origin-center" />
+        <span className="group-hover/feature:translate-x-2 transition duration-200 inline-block  text-neutral-100">
+          {title}
+        </span>
+      </div>
+      <p className="text-sm text-neutral-300 max-w-xs relative z-10 px-10">
+        {description}
+      </p>
+    </div>
+  );
+};
+
+export default LandingFeatures;
+
+================
+File: components/Landing/LandingHero.tsx
+================
+"use client"
+import { ArrowRight } from 'lucide-react'
+
+import { useRouter } from 'next/navigation'
+import React, { useEffect, useState } from 'react'
+import { RainbowButton } from '../magicui/rainbow-button'
+
+const LandingHero = ({isAuthenticated} : {isAuthenticated : boolean}) => {
+    const router = useRouter();
+    const words = ["Dazzle", "Amaze", "Analyze"];
+    const [displayText, setDisplayText] = useState('');
+    const [wordIndex, setWordIndex] = useState(0);
+    const [isDeleting, setIsDeleting] = useState(false);
+    
+    useEffect(() => {
+        let timer;
+        const currentWord = words[wordIndex];
+        const updateText = () => {
+            setDisplayText(prev => {
+                if (!isDeleting && prev === currentWord) {
+                    setIsDeleting(true);
+                    return prev;
+                } else if (isDeleting && prev === '') {
+                    setIsDeleting(false);
+                    setWordIndex((prevIndex) => (prevIndex + 1) % words.length);
+                    return '';
+                }
+
+                if (isDeleting) {
+                    return prev.slice(0, -1);
+                }
+                return currentWord.slice(0, prev.length + 1);
+            });
+        };
+
+        timer = setTimeout(updateText, isDeleting ? 100 : 200); 
+
+        return () => clearTimeout(timer);
+    }, [displayText, isDeleting, wordIndex, words]);
+
+    const handleGetStartedClick = () => {
+        if(isAuthenticated){
+            router.push('/dashboard')
+        } else {
+            // redirect to clerk login
+            router.push('/sign-in'); 
+        }
+    }
+        
+    return (
+        <div className="flex gap-8 font-primary_regular lg:px-0 px-4 flex-col text-white">
+            <h1 className="text-[32px] md:text-[42px] leading-[42px] lg:text-[88px] lg:leading-[90px] flex flex-col gap-2 font-nohemiBold text-center lg:text-left">
+                <div className="flex flex-col lg:flex-row gap-2 lg:gap-8 items-center font-medium">
+                    <span>Testimonials That</span>
+                    <div className="relative overflow-hidden p-2 lg:py-3 lg:px-6 rounded-[20px] border-2 border-blue-400 min-w-[300px] lg:min-w-[450px]">
+                        <div className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 to-yellow-400">
+                            <span>{displayText}</span>
+                            <span className="animate-pulse text-blue-400">|</span>
+                        </div>
+                    </div>
+                </div>
+                <div>No Wizardry Required !</div>
+            </h1>
+            <h2 className="text-base md:text-[22px] leading-6 max-w-2xl">
+                The all-in-one platform to gather, manage, and display customer testimonials.
+                Boost your social proof and convert more leads with authentic feedback.
+            </h2>
+            <div className="flex gap-4 items-center justify-start">
+                    {/* <button onClick={handleGetStartedClick} className="bg-blue-500 hover:bg-blue-600 transition-colors px-6 py-3 rounded-[10px] flex flex-row gap-2 items-center text-[18px] leading-[22px]">
+                        {!isAuthenticated ? "See The Magic" : "Go To Dashboard"}
+                        <ArrowRight />
+
+                    </button> */}
+                    <RainbowButton variant="outline" onClick={handleGetStartedClick} className="md:px-6 md:py-6 p-3 rounded-[10px] flex flex-row gap-2 items-center text-base md:text-[18px] leading-[22px]">
+ {!isAuthenticated ? "See The Magic" : "Go To Dashboard"}
+                        <ArrowRight />
+                    </RainbowButton>
+            </div>
+        </div>
+    )
+}
+
+export default LandingHero
+
+================
+File: components/Landing/ShiningCardSection.tsx
+================
+import { NeonGradientCard } from "@/components/ui/neon-gradient-card";
+import PulsatingButton from "../ui/pulsating-button";
+
+export function ShiningCardSection() {
+  return (
+    <NeonGradientCard className=" max-w-[90%] lg:max-w-5xl lg:mt-40 lg:mb-20 mb-20 mt-14 mx-auto items-center justify-center text-center">
+      <span className="pointer-events-none z-10 h-full whitespace-pre-wrap bg-gradient-to-br from-[#29b4ff] from-35% to-[#00FFF1] bg-clip-text text-center text-3xl lg:text-5xl font-bold leading-none tracking-tighter text-transparent drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
+      Ready to launch? <br />
+      Start building with EchoTestimonials
+      </span>
+      <PulsatingButton className="mx-auto mt-8 lg:text-base text-sm">Get Started</PulsatingButton>
+    </NeonGradientCard>
+  );
+}
+
+================
+File: components/magicui/rainbow-button.tsx
+================
+import { cn } from "@/lib/utils";
+import { Slot } from "@radix-ui/react-slot";
+import { cva, VariantProps } from "class-variance-authority";
+import React from "react";
+
+interface RainbowButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
+
+const rainbowButtonVariants = cva(
+  cn(
+    "relative cursor-pointer group transition-all animate-rainbow",
+    "inline-flex items-center justify-center gap-2 shrink-0",
+    "rounded-sm outline-none focus-visible:ring-[3px] aria-invalid:border-destructive",
+    "text-sm font-medium whitespace-nowrap",
+    "disabled:pointer-events-none disabled:opacity-50",
+    "[&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0",
+  ),
+  {
+    variants: {
+      variant: {
+        default:
+          "border-0 bg-[linear-gradient(#121213,#121213),linear-gradient(#121213_50%,rgba(18,18,19,0.6)_80%,rgba(18,18,19,0)),linear-gradient(90deg,var(--color-1),var(--color-5),var(--color-3),var(--color-4),var(--color-2))] bg-[length:200%] text-primary-foreground [background-clip:padding-box,border-box,border-box] [background-origin:border-box] [border:calc(0.125rem)_solid_transparent] before:absolute before:bottom-[-20%] before:left-1/2 before:z-0 before:h-1/5 before:w-3/5 before:-translate-x-1/2 before:animate-rainbow before:bg-[linear-gradient(90deg,var(--color-1),var(--color-5),var(--color-3),var(--color-4),var(--color-2))] before:[filter:blur(0.75rem)] dark:bg-[linear-gradient(#fff,#fff),linear-gradient(#fff_50%,rgba(255,255,255,0.6)_80%,rgba(0,0,0,0)),linear-gradient(90deg,var(--color-1),var(--color-5),var(--color-3),var(--color-4),var(--color-2))]",
+        outline:
+          "border border-input border-b-transparent bg-[linear-gradient(#ffffff,#ffffff),linear-gradient(#ffffff_50%,rgba(18,18,19,0.6)_80%,rgba(18,18,19,0)),linear-gradient(90deg,var(--color-1),var(--color-5),var(--color-3),var(--color-4),var(--color-2))] bg-[length:200%] text-accent-foreground [background-clip:padding-box,border-box,border-box] [background-origin:border-box] before:absolute before:bottom-[-20%] before:left-1/2 before:z-0 before:h-1/5 before:w-3/5 before:-translate-x-1/2 before:animate-rainbow before:bg-[linear-gradient(90deg,var(--color-1),var(--color-5),var(--color-3),var(--color-4),var(--color-2))] before:[filter:blur(0.75rem)] dark:bg-[linear-gradient(#0a0a0a,#0a0a0a),linear-gradient(#0a0a0a_50%,rgba(255,255,255,0.6)_80%,rgba(0,0,0,0)),linear-gradient(90deg,var(--color-1),var(--color-5),var(--color-3),var(--color-4),var(--color-2))]",
+      },
+      size: {
+        default: "h-9 px-4 py-2",
+        sm: "h-8 rounded-xl px-3 text-xs",
+        lg: "h-11 rounded-xl px-8",
+        icon: "size-9",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  },
+);
+
+interface RainbowButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof rainbowButtonVariants> {
+  asChild?: boolean;
+}
+
+const RainbowButton = React.forwardRef<HTMLButtonElement, RainbowButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button";
+    return (
+      <Comp
+        data-slot="button"
+        className={cn(rainbowButtonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    );
+  },
+);
+
+RainbowButton.displayName = "RainbowButton";
+
+export { RainbowButton, rainbowButtonVariants, type RainbowButtonProps };
+
+================
+File: components/ui/alert.tsx
+================
+import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const alertVariants = cva(
+  "relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7",
+  {
+    variants: {
+      variant: {
+        default: "bg-background text-foreground",
+        destructive:
+          "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+)
+
+const Alert = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>
+>(({ className, variant, ...props }, ref) => (
+  <div
+    ref={ref}
+    role="alert"
+    className={cn(alertVariants({ variant }), className)}
+    {...props}
+  />
+))
+Alert.displayName = "Alert"
+
+const AlertTitle = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }, ref) => (
+  <h5
+    ref={ref}
+    className={cn("mb-1 font-medium leading-none tracking-tight", className)}
+    {...props}
+  />
+))
+AlertTitle.displayName = "AlertTitle"
+
+const AlertDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("text-sm [&_p]:leading-relaxed", className)}
+    {...props}
+  />
+))
+AlertDescription.displayName = "AlertDescription"
+
+export { Alert, AlertTitle, AlertDescription }
+
+================
+File: components/ui/badge.tsx
+================
+import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const badgeVariants = cva(
+  "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  {
+    variants: {
+      variant: {
+        default:
+          "border-transparent bg-primary text-primary-foreground shadow hover:bg-primary/80",
+        secondary:
+          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        destructive:
+          "border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80",
+        outline: "text-foreground",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+)
+
+export interface BadgeProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof badgeVariants> {}
+
+function Badge({ className, variant, ...props }: BadgeProps) {
+  return (
+    <div className={cn(badgeVariants({ variant }), className)} {...props} />
+  )
+}
+
+export { Badge, badgeVariants }
+
+================
+File: components/ui/button.tsx
+================
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        default:
+          "bg-primary text-primary-foreground shadow hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-9 px-4 py-2",
+        sm: "h-8 rounded-md px-3 text-xs",
+        lg: "h-10 rounded-md px-8",
+        icon: "h-9 w-9",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button"
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+Button.displayName = "Button"
+
+export { Button, buttonVariants }
+
+================
+File: components/ui/card.tsx
+================
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+const Card = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "rounded-xl border bg-card text-card-foreground shadow",
+      className
+    )}
+    {...props}
+  />
+))
+Card.displayName = "Card"
+
+const CardHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    {...props}
+  />
+))
+CardHeader.displayName = "CardHeader"
+
+const CardTitle = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("font-semibold leading-none tracking-tight", className)}
+    {...props}
+  />
+))
+CardTitle.displayName = "CardTitle"
+
+const CardDescription = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props}
+  />
+))
+CardDescription.displayName = "CardDescription"
+
+const CardContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+))
+CardContent.displayName = "CardContent"
+
+const CardFooter = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex items-center p-6 pt-0", className)}
+    {...props}
+  />
+))
+CardFooter.displayName = "CardFooter"
+
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
+
+================
+File: components/ui/dialog.tsx
+================
+"use client"
+
+import * as React from "react"
+import * as DialogPrimitive from "@radix-ui/react-dialog"
+import { cn } from "@/lib/utils"
+import { Cross2Icon } from "@radix-ui/react-icons"
+
+const Dialog = DialogPrimitive.Root
+
+const DialogTrigger = DialogPrimitive.Trigger
+
+const DialogPortal = DialogPrimitive.Portal
+
+const DialogClose = DialogPrimitive.Close
+
+const DialogOverlay = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Overlay>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
+>(({ className, ...props }, ref) => (
+  <DialogPrimitive.Overlay
+    ref={ref}
+    className={cn(
+      "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      className
+    )}
+    {...props}
+  />
+))
+DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
+
+const DialogContent = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
+>(({ className, children, ...props }, ref) => (
+  <DialogPortal>
+    <DialogOverlay />
+    <DialogPrimitive.Content
+      ref={ref}
+      className={cn(
+        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
+        className
+      )}
+      {...props}
+    >
+      {children}
+      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+        <Cross2Icon className="h-4 w-4" />
+        <span className="sr-only">Close</span>
+      </DialogPrimitive.Close>
+    </DialogPrimitive.Content>
+  </DialogPortal>
+))
+DialogContent.displayName = DialogPrimitive.Content.displayName
+
+const DialogHeader = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cn(
+      "flex flex-col space-y-1.5 text-center sm:text-left",
+      className
+    )}
+    {...props}
+  />
+)
+DialogHeader.displayName = "DialogHeader"
+
+const DialogFooter = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cn(
+      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
+      className
+    )}
+    {...props}
+  />
+)
+DialogFooter.displayName = "DialogFooter"
+
+const DialogTitle = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Title>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
+>(({ className, ...props }, ref) => (
+  <DialogPrimitive.Title
+    ref={ref}
+    className={cn(
+      "text-lg font-semibold leading-none tracking-tight",
+      className
+    )}
+    {...props}
+  />
+))
+DialogTitle.displayName = DialogPrimitive.Title.displayName
+
+const DialogDescription = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Description>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
+>(({ className, ...props }, ref) => (
+  <DialogPrimitive.Description
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props}
+  />
+))
+DialogDescription.displayName = DialogPrimitive.Description.displayName
+
+export {
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+  DialogTrigger,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+}
+
+================
+File: components/ui/dropdown-menu.tsx
+================
+"use client"
+
+import * as React from "react"
+import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
+import {
+  CheckIcon,
+  ChevronRightIcon,
+  DotFilledIcon,
+} from "@radix-ui/react-icons"
+
+import { cn } from "@/lib/utils"
+
+const DropdownMenu = DropdownMenuPrimitive.Root
+
+const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger
+
+const DropdownMenuGroup = DropdownMenuPrimitive.Group
+
+const DropdownMenuPortal = DropdownMenuPrimitive.Portal
+
+const DropdownMenuSub = DropdownMenuPrimitive.Sub
+
+const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup
+
+const DropdownMenuSubTrigger = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.SubTrigger>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubTrigger> & {
+    inset?: boolean
+  }
+>(({ className, inset, children, ...props }, ref) => (
+  <DropdownMenuPrimitive.SubTrigger
+    ref={ref}
+    className={cn(
+      "flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-accent data-[state=open]:bg-accent",
+      inset && "pl-8",
+      className
+    )}
+    {...props}
+  >
+    {children}
+    <ChevronRightIcon className="ml-auto h-4 w-4" />
+  </DropdownMenuPrimitive.SubTrigger>
+))
+DropdownMenuSubTrigger.displayName =
+  DropdownMenuPrimitive.SubTrigger.displayName
+
+const DropdownMenuSubContent = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.SubContent>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent>
+>(({ className, ...props }, ref) => (
+  <DropdownMenuPrimitive.SubContent
+    ref={ref}
+    className={cn(
+      "z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+      className
+    )}
+    {...props}
+  />
+))
+DropdownMenuSubContent.displayName =
+  DropdownMenuPrimitive.SubContent.displayName
+
+const DropdownMenuContent = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
+>(({ className, sideOffset = 4, ...props }, ref) => (
+  <DropdownMenuPrimitive.Portal>
+    <DropdownMenuPrimitive.Content
+      ref={ref}
+      sideOffset={sideOffset}
+      className={cn(
+        "z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md",
+        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        className
+      )}
+      {...props}
+    />
+  </DropdownMenuPrimitive.Portal>
+))
+DropdownMenuContent.displayName = DropdownMenuPrimitive.Content.displayName
+
+const DropdownMenuItem = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item> & {
+    inset?: boolean
+  }
+>(({ className, inset, ...props }, ref) => (
+  <DropdownMenuPrimitive.Item
+    ref={ref}
+    className={cn(
+      "relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0",
+      inset && "pl-8",
+      className
+    )}
+    {...props}
+  />
+))
+DropdownMenuItem.displayName = DropdownMenuPrimitive.Item.displayName
+
+const DropdownMenuCheckboxItem = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.CheckboxItem>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.CheckboxItem>
+>(({ className, children, checked, ...props }, ref) => (
+  <DropdownMenuPrimitive.CheckboxItem
+    ref={ref}
+    className={cn(
+      "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    checked={checked}
+    {...props}
+  >
+    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <DropdownMenuPrimitive.ItemIndicator>
+        <CheckIcon className="h-4 w-4" />
+      </DropdownMenuPrimitive.ItemIndicator>
+    </span>
+    {children}
+  </DropdownMenuPrimitive.CheckboxItem>
+))
+DropdownMenuCheckboxItem.displayName =
+  DropdownMenuPrimitive.CheckboxItem.displayName
+
+const DropdownMenuRadioItem = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.RadioItem>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.RadioItem>
+>(({ className, children, ...props }, ref) => (
+  <DropdownMenuPrimitive.RadioItem
+    ref={ref}
+    className={cn(
+      "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    {...props}
+  >
+    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <DropdownMenuPrimitive.ItemIndicator>
+        <DotFilledIcon className="h-4 w-4 fill-current" />
+      </DropdownMenuPrimitive.ItemIndicator>
+    </span>
+    {children}
+  </DropdownMenuPrimitive.RadioItem>
+))
+DropdownMenuRadioItem.displayName = DropdownMenuPrimitive.RadioItem.displayName
+
+const DropdownMenuLabel = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Label>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Label> & {
+    inset?: boolean
+  }
+>(({ className, inset, ...props }, ref) => (
+  <DropdownMenuPrimitive.Label
+    ref={ref}
+    className={cn(
+      "px-2 py-1.5 text-sm font-semibold",
+      inset && "pl-8",
+      className
+    )}
+    {...props}
+  />
+))
+DropdownMenuLabel.displayName = DropdownMenuPrimitive.Label.displayName
+
+const DropdownMenuSeparator = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Separator>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Separator>
+>(({ className, ...props }, ref) => (
+  <DropdownMenuPrimitive.Separator
+    ref={ref}
+    className={cn("-mx-1 my-1 h-px bg-muted", className)}
+    {...props}
+  />
+))
+DropdownMenuSeparator.displayName = DropdownMenuPrimitive.Separator.displayName
+
+const DropdownMenuShortcut = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <span
+      className={cn("ml-auto text-xs tracking-widest opacity-60", className)}
+      {...props}
+    />
+  )
+}
+DropdownMenuShortcut.displayName = "DropdownMenuShortcut"
+
+export {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuGroup,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuRadioGroup,
+}
+
+================
+File: components/ui/input.tsx
+================
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+export interface InputProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {}
+
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, type, ...props }, ref) => {
+    return (
+      <input
+        type={type}
+        className={cn(
+          "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+          className
+        )}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+Input.displayName = "Input"
+
+export { Input }
+
+================
+File: components/ui/label.tsx
+================
+"use client"
+
+import * as React from "react"
+import * as LabelPrimitive from "@radix-ui/react-label"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const labelVariants = cva(
+  "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+)
+
+const Label = React.forwardRef<
+  React.ElementRef<typeof LabelPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> &
+    VariantProps<typeof labelVariants>
+>(({ className, ...props }, ref) => (
+  <LabelPrimitive.Root
+    ref={ref}
+    className={cn(labelVariants(), className)}
+    {...props}
+  />
+))
+Label.displayName = LabelPrimitive.Root.displayName
+
+export { Label }
+
+================
+File: components/ui/neon-gradient-card.tsx
+================
+"use client";
+
+import {
+  CSSProperties,
+  ReactElement,
+  ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
+import { cn } from "@/lib/utils"
+
+interface NeonColorsProps {
+  firstColor: string;
+  secondColor: string;
+}
+
+interface NeonGradientCardProps {
+  /**
+   * @default <div />
+   * @type ReactElement
+   * @description
+   * The component to be rendered as the card
+   * */
+  as?: ReactElement;
+  /**
+   * @default ""
+   * @type string
+   * @description
+   * The className of the card
+   */
+  className?: string;
+
+  /**
+   * @default ""
+   * @type ReactNode
+   * @description
+   * The children of the card
+   * */
+  children?: ReactNode;
+
+  /**
+   * @default 5
+   * @type number
+   * @description
+   * The size of the border in pixels
+   * */
+  borderSize?: number;
+
+  /**
+   * @default 20
+   * @type number
+   * @description
+   * The size of the radius in pixels
+   * */
+  borderRadius?: number;
+
+  /**
+   * @default "{ firstColor: '#ff00aa', secondColor: '#00FFF1' }"
+   * @type string
+   * @description
+   * The colors of the neon gradient
+   * */
+  neonColors?: NeonColorsProps;
+
+  [key: string]: any;
+}
+
+const NeonGradientCard: React.FC<NeonGradientCardProps> = ({
+  className,
+  children,
+  borderSize = 2,
+  borderRadius = 20,
+  neonColors = {
+    firstColor: "#ff00aa",
+    secondColor: "#00FFF1",
+  },
+  ...props
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        const { offsetWidth, offsetHeight } = containerRef.current;
+        setDimensions({ width: offsetWidth, height: offsetHeight });
+      }
+    };
+
+    updateDimensions();
+    window.addEventListener("resize", updateDimensions);
+
+    return () => {
+      window.removeEventListener("resize", updateDimensions);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      const { offsetWidth, offsetHeight } = containerRef.current;
+      setDimensions({ width: offsetWidth, height: offsetHeight });
+    }
+  }, [children]);
+
+  return (
+    <div
+      ref={containerRef}
+      style={
+        {
+          "--border-size": `${borderSize}px`,
+          "--border-radius": `${borderRadius}px`,
+          "--neon-first-color": neonColors.firstColor,
+          "--neon-second-color": neonColors.secondColor,
+          "--card-width": `${dimensions.width}px`,
+          "--card-height": `${dimensions.height}px`,
+          "--card-content-radius": `${borderRadius - borderSize}px`,
+          "--pseudo-element-background-image": `linear-gradient(0deg, ${neonColors.firstColor}, ${neonColors.secondColor})`,
+          "--pseudo-element-width": `${dimensions.width + borderSize * 2}px`,
+          "--pseudo-element-height": `${dimensions.height + borderSize * 2}px`,
+          "--after-blur": `${dimensions.width / 3}px`,
+        } as CSSProperties
+      }
+      className={cn(
+        "relative z-10 size-full rounded-[var(--border-radius)]",
+        className,
+      )}
+      {...props}
+    >
+      <div
+        className={cn(
+          "relative size-full min-h-[inherit] rounded-[var(--card-content-radius)] p-6",
+          "before:absolute before:-left-[var(--border-size)] before:-top-[var(--border-size)] before:-z-10 before:block",
+          "before:h-[var(--pseudo-element-height)] before:w-[var(--pseudo-element-width)] before:rounded-[var(--border-radius)] before:content-['']",
+          "before:bg-[linear-gradient(0deg,var(--neon-first-color),var(--neon-second-color))] before:bg-[length:100%_200%]",
+          "before:animate-background-position-spin",
+          "after:absolute after:-left-[var(--border-size)] after:-top-[var(--border-size)] after:-z-10 after:block",
+          "after:h-[var(--pseudo-element-height)] after:w-[var(--pseudo-element-width)] after:rounded-[var(--border-radius)] after:blur-[var(--after-blur)] after:content-['']",
+          "after:bg-[linear-gradient(0deg,var(--neon-first-color),var(--neon-second-color))] after:bg-[length:100%_200%] after:opacity-80",
+          "after:animate-background-position-spin",
+          "bg-black",
+        )}
+      >
+        {children}
+      </div>
+    </div>
+  );
+};
+
+export { NeonGradientCard };
+
+================
+File: components/ui/pulsating-button.tsx
+================
+"use client";
+
+import React from "react";
+
+import { cn } from "@/lib/utils"
+
+interface PulsatingButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  pulseColor?: string;
+  duration?: string;
+}
+
+export default function PulsatingButton({
+  className,
+  children,
+  pulseColor = "#0096ff",
+  duration = "1.5s",
+  ...props
+}: PulsatingButtonProps) {
+  return (
+    <button
+      className={cn(
+        "relative text-center cursor-pointer flex justify-center items-center rounded-lg text-white dark:text-black bg-blue-500 dark:bg-blue-500 px-4 py-2",
+        className,
+      )}
+      style={
+        {
+          "--pulse-color": pulseColor,
+          "--duration": duration,
+        } as React.CSSProperties
+      }
+      {...props}
+    >
+      <div className="relative z-10">{children}</div>
+      <div className="absolute top-1/2 left-1/2 size-full rounded-lg bg-inherit animate-pulse -translate-x-1/2 -translate-y-1/2" />
+    </button>
+  );
+}
+
+================
+File: components/ui/scroll-area.tsx
+================
+"use client"
+
+import * as React from "react"
+import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area"
+
+import { cn } from "@/lib/utils"
+
+const ScrollArea = React.forwardRef<
+  React.ElementRef<typeof ScrollAreaPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root>
+>(({ className, children, ...props }, ref) => (
+  <ScrollAreaPrimitive.Root
+    ref={ref}
+    className={cn("relative overflow-hidden", className)}
+    {...props}
+  >
+    <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit]">
+      {children}
+    </ScrollAreaPrimitive.Viewport>
+    <ScrollBar />
+    <ScrollAreaPrimitive.Corner />
+  </ScrollAreaPrimitive.Root>
+))
+ScrollArea.displayName = ScrollAreaPrimitive.Root.displayName
+
+const ScrollBar = React.forwardRef<
+  React.ElementRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>,
+  React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>
+>(({ className, orientation = "vertical", ...props }, ref) => (
+  <ScrollAreaPrimitive.ScrollAreaScrollbar
+    ref={ref}
+    orientation={orientation}
+    className={cn(
+      "flex touch-none select-none transition-colors",
+      orientation === "vertical" &&
+        "h-full w-2.5 border-l border-l-transparent p-[1px]",
+      orientation === "horizontal" &&
+        "h-2.5 flex-col border-t border-t-transparent p-[1px]",
+      className
+    )}
+    {...props}
+  >
+    <ScrollAreaPrimitive.ScrollAreaThumb className="relative flex-1 rounded-full bg-border" />
+  </ScrollAreaPrimitive.ScrollAreaScrollbar>
+))
+ScrollBar.displayName = ScrollAreaPrimitive.ScrollAreaScrollbar.displayName
+
+export { ScrollArea, ScrollBar }
+
+================
+File: components/ui/select.tsx
+================
+"use client"
+
+import * as React from "react"
+import * as SelectPrimitive from "@radix-ui/react-select"
+import { cn } from "@/lib/utils"
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "@radix-ui/react-icons"
+
+const Select = SelectPrimitive.Root
+
+const SelectGroup = SelectPrimitive.Group
+
+const SelectValue = SelectPrimitive.Value
+
+const SelectTrigger = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
+>(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Trigger
+    ref={ref}
+    className={cn(
+      "flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+      className
+    )}
+    {...props}
+  >
+    {children}
+    <SelectPrimitive.Icon asChild>
+      <ChevronDownIcon className="h-4 w-4 opacity-50" />
+    </SelectPrimitive.Icon>
+  </SelectPrimitive.Trigger>
+))
+SelectTrigger.displayName = SelectPrimitive.Trigger.displayName
+
+const SelectScrollUpButton = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.ScrollUpButton>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollUpButton>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.ScrollUpButton
+    ref={ref}
+    className={cn(
+      "flex cursor-default items-center justify-center py-1",
+      className
+    )}
+    {...props}
+  >
+    <ChevronUpIcon className="h-4 w-4" />
+  </SelectPrimitive.ScrollUpButton>
+))
+SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName
+
+const SelectScrollDownButton = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.ScrollDownButton>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollDownButton>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.ScrollDownButton
+    ref={ref}
+    className={cn(
+      "flex cursor-default items-center justify-center py-1",
+      className
+    )}
+    {...props}
+  >
+    <ChevronDownIcon className="h-4 w-4" />
+  </SelectPrimitive.ScrollDownButton>
+))
+SelectScrollDownButton.displayName =
+  SelectPrimitive.ScrollDownButton.displayName
+
+const SelectContent = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
+>(({ className, children, position = "popper", ...props }, ref) => (
+  <SelectPrimitive.Portal>
+    <SelectPrimitive.Content
+      ref={ref}
+      className={cn(
+        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        position === "popper" &&
+          "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
+        className
+      )}
+      position={position}
+      {...props}
+    >
+      <SelectScrollUpButton />
+      <SelectPrimitive.Viewport
+        className={cn(
+          "p-1",
+          position === "popper" &&
+            "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
+        )}
+      >
+        {children}
+      </SelectPrimitive.Viewport>
+      <SelectScrollDownButton />
+    </SelectPrimitive.Content>
+  </SelectPrimitive.Portal>
+))
+SelectContent.displayName = SelectPrimitive.Content.displayName
+
+const SelectLabel = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Label>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Label>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.Label
+    ref={ref}
+    className={cn("px-2 py-1.5 text-sm font-semibold", className)}
+    {...props}
+  />
+))
+SelectLabel.displayName = SelectPrimitive.Label.displayName
+
+const SelectItem = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
+>(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Item
+    ref={ref}
+    className={cn(
+      "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    {...props}
+  >
+    <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
+      <SelectPrimitive.ItemIndicator>
+        <CheckIcon className="h-4 w-4" />
+      </SelectPrimitive.ItemIndicator>
+    </span>
+    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+  </SelectPrimitive.Item>
+))
+SelectItem.displayName = SelectPrimitive.Item.displayName
+
+const SelectSeparator = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Separator>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Separator>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.Separator
+    ref={ref}
+    className={cn("-mx-1 my-1 h-px bg-muted", className)}
+    {...props}
+  />
+))
+SelectSeparator.displayName = SelectPrimitive.Separator.displayName
+
+export {
+  Select,
+  SelectGroup,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectLabel,
+  SelectItem,
+  SelectSeparator,
+  SelectScrollUpButton,
+  SelectScrollDownButton,
+}
+
+================
+File: components/ui/sheet.tsx
+================
+"use client"
+
+import * as React from "react"
+import * as SheetPrimitive from "@radix-ui/react-dialog"
+import { Cross2Icon } from "@radix-ui/react-icons"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const Sheet = SheetPrimitive.Root
+
+const SheetTrigger = SheetPrimitive.Trigger
+
+const SheetClose = SheetPrimitive.Close
+
+const SheetPortal = SheetPrimitive.Portal
+
+const SheetOverlay = React.forwardRef<
+  React.ElementRef<typeof SheetPrimitive.Overlay>,
+  React.ComponentPropsWithoutRef<typeof SheetPrimitive.Overlay>
+>(({ className, ...props }, ref) => (
+  <SheetPrimitive.Overlay
+    className={cn(
+      "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      className
+    )}
+    {...props}
+    ref={ref}
+  />
+))
+SheetOverlay.displayName = SheetPrimitive.Overlay.displayName
+
+const sheetVariants = cva(
+  "fixed z-50 gap-4 bg-neutral-900 p-6 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500 data-[state=open]:animate-in data-[state=closed]:animate-out",
+  {
+    variants: {
+      side: {
+        top: "inset-x-0 top-0 border-b data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top",
+        bottom:
+          "inset-x-0 bottom-0 border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
+        left: "inset-y-0 left-0 h-full w-3/4 border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left sm:max-w-sm",
+        right:
+          "inset-y-0 right-0 h-full w-3/4 border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm",
+      },
+    },
+    defaultVariants: {
+      side: "right",
+    },
+  }
+)
+
+interface SheetContentProps
+  extends React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content>,
+    VariantProps<typeof sheetVariants> {}
+
+const SheetContent = React.forwardRef<
+  React.ElementRef<typeof SheetPrimitive.Content>,
+  SheetContentProps
+>(({ side = "right", className, children, ...props }, ref) => (
+  <SheetPortal>
+    <SheetOverlay />
+    <SheetPrimitive.Content
+      ref={ref}
+      className={cn(sheetVariants({ side }), className)}
+      {...props}
+    >
+      <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+        <Cross2Icon className="h-4 w-4" />
+        <span className="sr-only">Close</span>
+      </SheetPrimitive.Close>
+      {children}
+    </SheetPrimitive.Content>
+  </SheetPortal>
+))
+SheetContent.displayName = SheetPrimitive.Content.displayName
+
+const SheetHeader = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cn(
+      "flex flex-col space-y-2 text-center sm:text-left",
+      className
+    )}
+    {...props}
+  />
+)
+SheetHeader.displayName = "SheetHeader"
+
+const SheetFooter = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cn(
+      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
+      className
+    )}
+    {...props}
+  />
+)
+SheetFooter.displayName = "SheetFooter"
+
+const SheetTitle = React.forwardRef<
+  React.ElementRef<typeof SheetPrimitive.Title>,
+  React.ComponentPropsWithoutRef<typeof SheetPrimitive.Title>
+>(({ className, ...props }, ref) => (
+  <SheetPrimitive.Title
+    ref={ref}
+    className={cn("text-lg font-semibold text-foreground", className)}
+    {...props}
+  />
+))
+SheetTitle.displayName = SheetPrimitive.Title.displayName
+
+const SheetDescription = React.forwardRef<
+  React.ElementRef<typeof SheetPrimitive.Description>,
+  React.ComponentPropsWithoutRef<typeof SheetPrimitive.Description>
+>(({ className, ...props }, ref) => (
+  <SheetPrimitive.Description
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props}
+  />
+))
+SheetDescription.displayName = SheetPrimitive.Description.displayName
+
+export {
+  Sheet,
+  SheetPortal,
+  SheetOverlay,
+  SheetTrigger,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetFooter,
+  SheetTitle,
+  SheetDescription,
+}
+
+================
+File: components/ui/switch.tsx
+================
+"use client"
+
+import * as React from "react"
+import * as SwitchPrimitives from "@radix-ui/react-switch"
+
+import { cn } from "@/lib/utils"
+
+const Switch = React.forwardRef<
+  React.ElementRef<typeof SwitchPrimitives.Root>,
+  React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root>
+>(({ className, ...props }, ref) => (
+  <SwitchPrimitives.Root
+    className={cn(
+      "peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input",
+      className
+    )}
+    {...props}
+    ref={ref}
+  >
+    <SwitchPrimitives.Thumb
+      className={cn(
+        "pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0"
+      )}
+    />
+  </SwitchPrimitives.Root>
+))
+Switch.displayName = SwitchPrimitives.Root.displayName
+
+export { Switch }
+
+================
+File: components/ui/textarea.tsx
+================
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+const Textarea = React.forwardRef<
+  HTMLTextAreaElement,
+  React.ComponentProps<"textarea">
+>(({ className, ...props }, ref) => {
+  return (
+    <textarea
+      className={cn(
+        "flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+        className
+      )}
+      ref={ref}
+      {...props}
+    />
+  )
+})
+Textarea.displayName = "Textarea"
+
+export { Textarea }
+
+================
+File: components/ui/tooltip.tsx
+================
+"use client"
+
+import * as React from "react"
+import * as TooltipPrimitive from "@radix-ui/react-tooltip"
+
+import { cn } from "@/lib/utils"
+
+const TooltipProvider = TooltipPrimitive.Provider
+
+const Tooltip = TooltipPrimitive.Root
+
+const TooltipTrigger = TooltipPrimitive.Trigger
+
+const TooltipContent = React.forwardRef<
+  React.ElementRef<typeof TooltipPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
+>(({ className, sideOffset = 4, ...props }, ref) => (
+  <TooltipPrimitive.Portal>
+    <TooltipPrimitive.Content
+      ref={ref}
+      sideOffset={sideOffset}
+      className={cn(
+        "z-50 overflow-hidden rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        className
+      )}
+      {...props}
+    />
+  </TooltipPrimitive.Portal>
+))
+TooltipContent.displayName = TooltipPrimitive.Content.displayName
+
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
+
+================
+File: components/Appbar.tsx
+================
+"use client"
+import React, { useState} from "react";
+import { Menu, X } from "lucide-react";
+import {
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from '@clerk/nextjs'
+import { useRouter } from "next/navigation";
+
+
+type AppbarProps = {
+  isAuthenticated: boolean;
+};
+
+const Appbar = ({ isAuthenticated }: AppbarProps) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const router = useRouter();
+  //testing axios api client 
+  
+  // useEffect(()=>{
+  //   const sample = async() => {
+  //     try {
+  //       const res = await api.get('/users/')
+  //     console.log(res.data)
+  //     } catch (error) {
+  //       console.error(error)
+  //     }
+  //   }
+  //   sample()
+  // })
+  
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(prevState => !prevState);
+  };
+
+  const handleSignIn = () => {
+    if(!isAuthenticated) {
+      router.push('/sign-in');
+    } else {
+      router.push('/dashboard');
+    }
+  };
+
+
+  return (
+    <nav className="font-primary_regular bg-zinc-900 bg-clip-padding backdrop-filter z-[100] backdrop-blur-sm bg-opacity-30 border-b-2 border-zinc-800 sticky top-0">
+      <div className="container mx-auto px-4 md:px-16">
+        <div className="flex items-center justify-between py-6">
+          <div className="text-[#FFFFFF] font-bold font-nohemiBold text-2xl sm:text-3xl lg:text-4xl">
+            EchoTestimonials
+          </div>
+
+          <div className="hidden md:flex items-center space-x-4">
+          <SignedOut>
+              <SignUpButton>
+                <button className="bg-purple-400 hover:bg-purple-400/50 transition-colors px-6 py-3 rounded-[10px] flex flex-row gap-2 items-center text-[18px] leading-[22px] text-black">
+                  Get Started
+                </button>
+              </SignUpButton>
+            </SignedOut>
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden">
+            <button
+              onClick={toggleMobileMenu}
+              className="text-white focus:outline-none p-2"
+              aria-label="Toggle mobile menu"
+            >
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile menu items */}
+        <div
+          className={`md:hidden md:max-w-none rounded-lg overflow-hidden transition-all duration-300 ease-in-out transform ${
+            isMobileMenuOpen ? "max-h-[400px] opacity-100 p-4 mb-4" : "max-h-0 p-0 opacity-0"
+          }`}
+        >
+           <SignedOut>
+              <SignUpButton>
+                <button className="bg-blue-500 hover:bg-blue-600 transition-colors px-6 py-3 rounded-[10px] flex flex-row gap-2 items-center text-[18px] leading-[22px]" onClick={handleSignIn}>
+                  Get Started
+                </button>
+              </SignUpButton>
+            </SignedOut>
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+export default Appbar;
+
+================
+File: components/HeaderNav.tsx
+================
+"use client"
+import React from 'react'
+import { Menu, User, LogOut } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import Image from "next/image"
+
+type Props = {}
+
+const HeaderNav = (props: Props) => {
+    return (
+        <header className="flex h-14 items-center justify-between border-[#2e2e2e] border-b px-4 lg:px-6">
+            <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden"
+                onClick={() => console.log('clicked')}
+            >
+                <Menu className="h-6 w-6" />
+            </Button>
+            <h1 className="text-xl font-semibold lg:hidden">Dashboard</h1>
+            <div className="ml-auto lg:block hidden" />
+
+            <div className="ml-auto lg:pr-20">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Image
+                            src="/images/profile.png"
+                            width={44}
+                            height={44}
+                            alt="profile_image"
+                            className="rounded-full border p-0.5 cursor-pointer"
+                        />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="cursor-pointer">
+                            <User className="mr-2 h-4 w-4" />
+                            <span>Profile</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer">
+                            <LogOut className="mr-2 h-4 w-4" />
+                            <span>Log out</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+        </header>
+    )
+}
+
+export default HeaderNav
+
+================
+File: components/Sidebar.tsx
+================
+"use client";
+import React, { useState } from "react";
+import {
+  X,
+  LayoutDashboard,
+  Settings,
+  Ellipsis,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import UserMenu from "./UserMenu";
+import { usePathname } from "next/navigation";
+import { UserButton } from "@clerk/nextjs";
+
+const Sidebar = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
+
+  const menuItems = [
+    { icon: LayoutDashboard, label: "Organizations", path: "/dashboard" },
+    { icon: Settings, label: "Settings", path: "/settings" },
+    { icon: UserButton }
+  ];
+
+  return (
+    <>
+      {/* Mobile Header */}
+      <div className="lg:hidden bg-raisin border-[#2e2e2e] border-b h-14 flex items-center justify-between px-4">
+        <div className="flex items-center space-x-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <Ellipsis className="h-6 w-6 text-white" />
+          </Button>
+          <span className="font-semibold text-lg">Dashboard</span>
+        </div>
+      </div>
+
+      {/* Sidebar */}
+      <aside
+        className={`
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          fixed inset-y-0 left-0 z-50 w-20 bg-raisin text-gray-300
+          transition-transform duration-300 ease-in-out border-r border-[#2e2e2e] 
+          lg:translate-x-0 lg:relative flex flex-col items-center
+        `}
+      >
+        {/* Header / Logo */}
+        <div className="h-14 w-full flex items-center justify-center border-b border-[#2e2e2e]">
+          <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center">
+            ET
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 mt-6 space-y-2 w-full flex flex-col items-center">
+          {menuItems.map((item: any, index: number) => (
+            <button
+              key={index}
+              className={`
+                w-10 h-10 rounded-xl mb-2 flex items-center justify-center
+                ${pathname == item.path || pathname.startsWith(item.path) ? "bg-[#7361dc] text-white" : "hover:bg-blue hover:text-primary-foreground" }
+              `}
+            >
+              <item.icon className="h-5 w-5" />
+              {/* Tooltip-like label for desktop */}
+              <span className="sr-only">{item.label}</span>
+            </ button>
+          ))}
+           
+        </nav>
+
+        {/* User Menu - Bottom */}
+        <div className="mb-4">
+          <UserMenu />
+        </div>
+
+        {/* Mobile Close Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="lg:hidden absolute top-3 right-3"
+          onClick={() => setSidebarOpen(false)}
+        >
+          <X className="h-6 w-6" />
+        </Button>
+      </aside>
+
+      {/* Mobile Backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+    </>
+  );
+};
+
+export default Sidebar;
+
+================
+File: components/UserAvatar.tsx
+================
+"use client"
+
+import React from "react";
+
+type UserAvatarProps = {
+  image: string;
+};
+
+const UserAvatar: React.FC<UserAvatarProps> = ({ image }) => {
+  return (
+    <div>
+      <img
+        src={image}
+        className="rounded-full h-[4rem] w-[4rem]"
+        alt="User Avatar"
+      />
+    </div>
+  );
+};
+
+export default UserAvatar;
+
+================
+File: components/UserMenu.tsx
+================
+"use client";
+import React from "react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { LogOut, Settings, User, Bell, HelpCircle } from "lucide-react";
+
+import UserAvatar from "@/components/UserAvatar";
+
+const UserMenu = () => {
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger className="flex items-center space-x-3 text-white">
+        
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align="end" className="w-56 bg-zinc-800 text-white rounded-lg shadow-lg">
+        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+        <DropdownMenuSeparator className="bg-zinc-700" />
+        <DropdownMenuItem className="focus:bg-zinc-700">
+          <User className="w-4 h-4 mr-2" />
+          Profile
+        </DropdownMenuItem>
+        {/* <DropdownMenuItem className="focus:bg-zinc-700">
+          <Settings className="w-4 h-4 mr-2" />
+          Settings
+        </DropdownMenuItem>
+        <DropdownMenuItem className="focus:bg-zinc-700">
+          <Bell className="w-4 h-4 mr-2" />
+          Notifications
+        </DropdownMenuItem>
+        <DropdownMenuItem className="focus:bg-zinc-700">
+          <HelpCircle className="w-4 h-4 mr-2" />
+          Help & Support
+        </DropdownMenuItem> */}
+        <DropdownMenuSeparator className="bg-zinc-700" />
+        <DropdownMenuItem 
+          className="focus:bg-zinc-700 text-red-400 focus:text-red-400" 
+
+        >
+          <LogOut className="w-4 h-4 mr-2" />
+          Logout
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+export default UserMenu;
+
+================
+File: config/index.ts
+================
+export const config = {
+    backendAuthUrl: process.env.BACKEND_AUTH_URL,
+}
+
+================
+File: hooks/useAuth.ts
+================
+import { config } from "@/config";
+import { useAuth, useUser } from "@clerk/nextjs";
+
+
+function useRegisterUserWithBackend() {
+  const { user } = useUser();      // Get current Clerk user
+  const { getToken } = useAuth();  // Clerk session token fetcher
+
+  const registerUserWithBackend = async () => {
+    if (!user) return; // Optionally handle if not signed in
+
+    const token = await getToken();
+
+    // Send user data to backend
+    await fetch(`${config.backendAuthUrl}/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}` // Pass Clerk token to backend for verification
+      },
+      body: JSON.stringify({
+        clerkId: user.id,
+        email: user.primaryEmailAddress?.emailAddress,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        imageUrl : user.imageUrl,
+        // Add more fields as needed
+      })
+    });
+  };
+
+  return registerUserWithBackend;
+}
+
+export default useRegisterUserWithBackend;
+
+================
+File: hooks/useProject.ts
+================
+// tanstack custom hook to create and get project
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createProject, getProjectById } from "@/services/projectServices";
+
+
+export const useCreateProject = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: createProject,
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["projects"] }),
+        onError: (error) => {
+            console.error(error);
+        },
+    });
+}
+
+export const useGetProjectById = (id: string) => {
+    return useQuery({
+        queryKey: ["projects", id],
+        queryFn: () => getProjectById(id),
+        enabled: !!id,
+    });
+}
+
+================
+File: lib/api.ts
+================
+import axios from "axios";
+
+export const api = axios.create({
+  baseURL: process.env.BACKEND_API_URL || "http://localhost:8080",
+});
+
+================
+File: lib/utils.ts
+================
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
+================
+File: providers/index.tsx
+================
+'use client'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useState } from 'react'
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 60 * 1000,
+        retry: 1,
+      },
+    },
+  }))
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
+  )
+}
+
+================
+File: services/orgsServices.ts
+================
+import { api } from "@/lib/api";
+import { Organization, OrganizationMember, OrgSummary, Project } from "@/types/Orgs";
+
+
+export const getOrgs = async (token: string) : Promise<OrgSummary[]> => {
+    try {
+        const response = await api.get("/orgs",{
+        headers : {
+            "Authorization" : `Bearer ${token}`
+        }
+    });
+
+    return response.data;
+    } catch (error) {
+        console.error("Error fetching organizations:", error);
+        throw error;
+    }
+}
+
+
+// Get organization by slug
+export const getOrganizationBySlug = async (slug: string, token: string): Promise<Organization> => {
+  try {
+    const response = await api.get(`/orgs/${slug}`, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching organization:", error);
+    throw error;
+  }
+};
+
+// Get organization members
+export const getOrgMembers = async (slug: string, token: string): Promise<OrganizationMember[]> => {
+  try {
+    const response = await api.get(`/orgs/${slug}/members`, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching org members:", error);
+    throw error;
+  }
+};
+
+// Get organization projects
+export const getOrgProjects = async (slug: string, token: string): Promise<Project[]> => {
+  try {
+    const response = await api.get(`/orgs/${slug}/projects`, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching org projects:", error);
+    throw error;
+  }
+};
+
+// Create new organization
+export const createOrganization = async (data: { name: string; slug: string }, token: string): Promise<Organization> => {
+  try {
+    const response = await api.post("/orgs", data, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error creating organization:", error);
+    throw error;
+  }
+};
+
+================
+File: services/projectServices.ts
+================
+import { api } from "@/lib/api";
+import { Project } from "@/types/Orgs";
+
+export const createProject = async (data: { name: string, domain: string, orgId: string }) : Promise<Project[]> => {
+    const response = await api.post("/projects", data);
+    return response.data;
+}   
+
+export const getProjectById = async (id: string) => {
+    const response = await api.get(`/projects/${id}`);
+    return response.data;
+}
+
+================
+File: types/Orgs.ts
+================
+export type OrgRole = "owner" | "admin" | "member";
+
+export interface OrgSummary {
+  id: string;
+  name: string;
+  slug: string;
+  role: OrgRole;
+}
+
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  createdAt: string;
+  role: OrgRole; // Current user's role in this org
+  memberCount: number;
+  projectCount: number;
+}
+
+export interface OrganizationMember {
+  id: string;
+  userId: string; // This is actually clerkId from users table
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  imageUrl: string | null;
+  role: OrgRole;
+  joinedAt: string; // This maps to orgMembers.createdAt
+}
+
+export interface Project {
+  id: string;
+  orgId: string;
+  name: string;
+  domain: string;
+  embedKey: string;
+  createdAt: string;
+}
+
+// API Response Types
+export interface GetOrganizationResponse extends Organization {}
+
+export interface GetOrgMembersResponse extends Array<OrganizationMember> {}
+
+export interface GetOrgProjectsResponse extends Array<Project> {}
+
+// Create Organization Types
+export interface CreateOrganizationRequest {
+  name: string;
+  slug: string;
+}
+
+export interface CreateOrganizationResponse {
+  id: string;
+  name: string;
+  slug: string;
+  createdAt: string;
+}
+
+================
+File: types/User.ts
+================
+export interface User {
+  clerkId: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  imageUrl: string | null;
+  createdAt: string;
+}
+
+================
+File: .env.example
+================
+AUTH_GOOGLE_ID=
+AUTH_GOOGLE_SECRET=
+AUTH_SECRET="" # Added by `npx auth`. Read more: https://cli.authjs.dev
+BACKEND_AUTH_URL=""
+
+================
+File: .eslintrc.json
+================
+{
+  "extends": ["next/core-web-vitals", "next/typescript"]
+}
+
+================
+File: .gitignore
+================
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*.local
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+================
+File: components.json
+================
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "tailwind.config.ts",
+    "css": "app/globals.css",
+    "baseColor": "neutral",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils",
+    "ui": "@/components/ui",
+    "lib": "@/lib",
+    "hooks": "@/hooks"
+  }
+}
+
+================
+File: middleware.ts
+================
+import { clerkMiddleware } from '@clerk/nextjs/server';
+
+export default clerkMiddleware();
+
+export const config = {
+  matcher: [
+    // Skip Next.js internals and all static files, unless found in search params
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // Always run for API routes
+    '/(api|trpc)(.*)',
+  ],
+};
+
+================
+File: next-auth.d.ts
+================
+import NextAuth, { DefaultSession } from "next-auth"
+import { JWT } from "next-auth/jwt"
+
+declare module "next-auth" {
+    interface Session {
+      accessToken?: string;
+      user: {
+        userId?: string;
+      } & DefaultSession["user"]
+    }
+  
+    interface Account {
+      customToken?: string;
+      userId?: string;
+    }
+  }
+  
+  declare module "next-auth/jwt" {
+    interface JWT {
+      customToken?: string;
+      userId?: string;
+    }
+  }
+
+================
+File: next.config.mjs
+================
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+    images : {
+        domains: ['lh3.googleusercontent.com'],
+    }
+};
+
+export default nextConfig;
+
+================
+File: package.json
+================
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@auth/core": "^0.35.3",
+    "@clerk/nextjs": "^6.23.2",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "@next/font": "^14.2.13",
+    "@radix-ui/react-dialog": "^1.1.14",
+    "@radix-ui/react-dropdown-menu": "^2.1.2",
+    "@radix-ui/react-icons": "^1.3.0",
+    "@radix-ui/react-label": "^2.1.1",
+    "@radix-ui/react-scroll-area": "^1.2.0",
+    "@radix-ui/react-select": "^2.1.4",
+    "@radix-ui/react-slot": "^1.1.0",
+    "@radix-ui/react-switch": "^1.1.2",
+    "@radix-ui/react-tooltip": "^1.1.4",
+    "@tabler/icons-react": "^3.19.0",
+    "@tanstack/react-query": "^5.62.8",
+    "axios": "^1.7.7",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "cobe": "^0.6.3",
+    "framer-motion": "^11.11.0",
+    "lucide-react": "^0.445.0",
+    "next": "14.2.13",
+    "next-auth": "5.0.0-beta.21",
+    "react": "^18",
+    "react-dom": "^18",
+    "sonner": "^1.7.1",
+    "tailwind-merge": "^2.5.3",
+    "tailwindcss-animate": "^1.0.7",
+    "zustand": "^5.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.13",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
+}
+
+================
+File: postcss.config.mjs
+================
+/** @type {import('postcss-load-config').Config} */
+const config = {
+  plugins: {
+    tailwindcss: {},
+  },
+};
+
+export default config;
+
+================
+File: README.md
+================
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+================
+File: tailwind.config.ts
+================
+import type { Config } from "tailwindcss";
+
+const config: Config = {
+    darkMode: ["class"],
+    content: [
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+  	extend: {
+  		 colors: {
+    // Base palette
+    flavescent: "#FFEE98",   // highlights / badges
+    peach: "#FDC693",        // warnings / accents
+    pink: "#FF9595",         // errors / destructive
+    blue: "#C0DBEF",         // info / secondary accents
+
+    // Grayscale
+    raisin: "#242527",       // sidebar / cards
+    onyx: "#353839",         // elevated backgrounds
+    eerie: "#1A1D1F",        // dashboard background
+    chinese: "#111315",      // darkest background
+
+    // Map to semantic tokens
+    background: "#111315",    // dark mode bg
+    foreground: "#FFFFFF",    // text
+    card: {
+      DEFAULT: "#1A1D1F",     // cards
+      foreground: "#FFFFFF",
+    },
+    primary: {
+      DEFAULT: "#FFEE98",     // buttons
+      foreground: "#111315",  // text on primary
+    },
+    secondary: {
+      DEFAULT: "#C0DBEF",     // secondary buttons
+      foreground: "#111315",
+    },
+    accent: {
+      DEFAULT: "#FDC693",     // highlights
+      foreground: "#111315",
+    },
+    destructive: {
+      DEFAULT: "#FF9595",     // errors
+      foreground: "#111315",
+    },
+    muted: {
+      DEFAULT: "#353839",     // muted UI (sidebar items, borders)
+      foreground: "#C0DBEF",  // softer text
+    },
+  },
+  		fontFamily: {
+  			monasans: ['var(--font-monasans)'],
+  			nohemiBold: ['var(--font-nohemiBold)'],
+  			primary_regular: ['var(--font-primary_regular)']
+  		},
+  		keyframes: {
+  			typewriter: {
+  				'0%': {
+  					width: '0%'
+  				},
+  				'100%': {
+  					width: '100%'
+  				}
+  			},
+  			blink: {
+  				'0%, 100%': {
+  					opacity: '1'
+  				},
+  				'50%': {
+  					opacity: '0'
+  				}
+  			},
+  			shine: {
+  				'0%': {
+  					'background-position': '0% 0%'
+  				},
+  				'50%': {
+  					'background-position': '100% 100%'
+  				},
+  				to: {
+  					'background-position': '0% 0%'
+  				}
+  			},
+  			'background-position-spin': {
+  				'0%': {
+  					backgroundPosition: 'top center'
+  				},
+  				'100%': {
+  					backgroundPosition: 'bottom center'
+  				}
+  			},
+  			pulse: {
+  				'0%, 100%': {
+  					boxShadow: '0 0 0 0 var(--pulse-color)'
+  				},
+  				'50%': {
+  					boxShadow: '0 0 0 8px var(--pulse-color)'
+  				}
+  			}
+  		},
+  		animation: {
+  			typewriter: 'typewriter 2s steps(10) 1s forwards',
+  			'blink-cursor': 'blink 1s infinite',
+  			shine: 'shine var(--duration) infinite linear',
+  			'background-position-spin': 'background-position-spin 3000ms infinite alternate',
+  			pulse: 'pulse var(--duration) ease-out infinite'
+  		},
+  		borderRadius: {
+  			lg: 'var(--radius)',
+  			md: 'calc(var(--radius) - 2px)',
+  			sm: 'calc(var(--radius) - 4px)'
+  		}
+  	}
+  },
+  plugins: [require("tailwindcss-animate")],
+}
+export default config;
+
+================
+File: tsconfig.json
+================
+{
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"],
+    }
+  },
+  "include": [
+    "process.d.ts",
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "types/next-auth.d.ts",
+    "utils/**/*.ts"
+  ],
+  "exclude": ["node_modules"]
+}
+
+
+
+
+================================================================
+End of Codebase
+================================================================

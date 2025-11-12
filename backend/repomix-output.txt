@@ -1,0 +1,1355 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+================================================================
+File Summary
+================================================================
+
+Purpose:
+--------
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+
+File Format:
+------------
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  a. A separator line (================)
+  b. The file path (File: path/to/file)
+  c. Another separator line
+  d. The full contents of the file
+  e. A blank line
+
+Usage Guidelines:
+-----------------
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+
+Notes:
+------
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+
+
+================================================================
+Directory Structure
+================================================================
+drizzle/
+  meta/
+    _journal.json
+    0000_snapshot.json
+    0001_snapshot.json
+  0000_perfect_thunderball.sql
+  0001_colorful_stark_industries.sql
+src/
+  controllers/
+    orgs.controller.ts
+    projects.controller.ts
+    user.controller.ts
+  db/
+    index.ts
+    schema.ts
+  routes/
+    clerk.routes.ts
+    orgs.routes.ts
+    projects.route.ts
+  types/
+    orgs.ts
+    user.ts
+  utils/
+    index.ts
+  server.ts
+drizzle.config.ts
+package.json
+tsconfig.json
+
+================================================================
+Files
+================================================================
+
+================
+File: drizzle/meta/_journal.json
+================
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1755336351849,
+      "tag": "0000_perfect_thunderball",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1755356138537,
+      "tag": "0001_colorful_stark_industries",
+      "breakpoints": true
+    }
+  ]
+}
+
+================
+File: drizzle/meta/0000_snapshot.json
+================
+{
+  "id": "3005929a-b7c4-4485-92f5-4a63b82b2b1a",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "clerk_id": {
+          "name": "clerk_id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "image_url": {
+          "name": "image_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "users_email_unique": {
+          "name": "users_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
+
+================
+File: drizzle/meta/0001_snapshot.json
+================
+{
+  "id": "98c9b9d8-8a4e-4619-b49b-80053f77b5e3",
+  "prevId": "3005929a-b7c4-4485-92f5-4a63b82b2b1a",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.org_members": {
+      "name": "org_members",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "org_id": {
+          "name": "org_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'member'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "org_members_org_id_orgs_id_fk": {
+          "name": "org_members_org_id_orgs_id_fk",
+          "tableFrom": "org_members",
+          "tableTo": "orgs",
+          "columnsFrom": [
+            "org_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "org_members_user_id_users_clerk_id_fk": {
+          "name": "org_members_user_id_users_clerk_id_fk",
+          "tableFrom": "org_members",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "clerk_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.orgs": {
+      "name": "orgs",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "slug": {
+          "name": "slug",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "orgs_slug_unique": {
+          "name": "orgs_slug_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "slug"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.projects": {
+      "name": "projects",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "org_id": {
+          "name": "org_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "domain": {
+          "name": "domain",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "embed_key": {
+          "name": "embed_key",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "projects_org_id_orgs_id_fk": {
+          "name": "projects_org_id_orgs_id_fk",
+          "tableFrom": "projects",
+          "tableTo": "orgs",
+          "columnsFrom": [
+            "org_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "projects_embed_key_unique": {
+          "name": "projects_embed_key_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "embed_key"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "clerk_id": {
+          "name": "clerk_id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "image_url": {
+          "name": "image_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "users_email_unique": {
+          "name": "users_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.role": {
+      "name": "role",
+      "schema": "public",
+      "values": [
+        "owner",
+        "admin",
+        "member"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
+
+================
+File: drizzle/0000_perfect_thunderball.sql
+================
+CREATE TABLE "users" (
+	"clerk_id" varchar PRIMARY KEY NOT NULL,
+	"email" text NOT NULL,
+	"first_name" text,
+	"last_name" text,
+	"image_url" text,
+	"created_at" timestamp DEFAULT now(),
+	CONSTRAINT "users_email_unique" UNIQUE("email")
+);
+
+================
+File: drizzle/0001_colorful_stark_industries.sql
+================
+CREATE TYPE "public"."role" AS ENUM('owner', 'admin', 'member');--> statement-breakpoint
+CREATE TABLE "org_members" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"org_id" uuid NOT NULL,
+	"user_id" varchar NOT NULL,
+	"role" "role" DEFAULT 'member' NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "orgs" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"name" text NOT NULL,
+	"slug" varchar(64) NOT NULL,
+	"created_at" timestamp DEFAULT now(),
+	CONSTRAINT "orgs_slug_unique" UNIQUE("slug")
+);
+--> statement-breakpoint
+CREATE TABLE "projects" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"org_id" uuid NOT NULL,
+	"name" text NOT NULL,
+	"domain" text,
+	"embed_key" varchar(64) NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "projects_embed_key_unique" UNIQUE("embed_key")
+);
+--> statement-breakpoint
+ALTER TABLE "org_members" ADD CONSTRAINT "org_members_org_id_orgs_id_fk" FOREIGN KEY ("org_id") REFERENCES "public"."orgs"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "org_members" ADD CONSTRAINT "org_members_user_id_users_clerk_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("clerk_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "projects" ADD CONSTRAINT "projects_org_id_orgs_id_fk" FOREIGN KEY ("org_id") REFERENCES "public"."orgs"("id") ON DELETE cascade ON UPDATE no action;
+
+================
+File: src/controllers/orgs.controller.ts
+================
+import { db } from "@/db";
+import { orgMembers, orgs, users, projects } from "@/db/schema";
+import { eq, and, desc, count } from "drizzle-orm";
+
+export const getOrgsByClerkId = async (clerkId: string) => {
+  const rows = await db
+    .select({
+      id: orgs.id,
+      name: orgs.name,
+      slug: orgs.slug,
+      role: orgMembers.role,
+      createdAt: orgs.createdAt,
+    })
+    .from(orgMembers)
+    .innerJoin(orgs, eq(orgMembers.orgId, orgs.id))
+    .innerJoin(users, eq(orgMembers.userId, users.clerkId))
+    .where(eq(users.clerkId, clerkId))
+    .orderBy(desc(orgs.createdAt));
+
+  return rows;
+};
+
+export const createOrg = async (data: { name: string; slug: string; createdBy: string }) => {
+  const newOrg = await db
+    .insert(orgs)
+    .values({
+      name: data.name,
+      slug: data.slug,
+    })
+    .returning();
+
+  return newOrg;
+};
+
+export const getOrgBySlug = async (slug: string, clerkId: string) => {
+  const orgResult = await db
+    .select({
+      id: orgs.id,
+      name: orgs.name,
+      slug: orgs.slug,
+      createdAt: orgs.createdAt,
+      userRole: orgMembers.role,
+    })
+    .from(orgs)
+    .innerJoin(orgMembers, eq(orgs.id, orgMembers.orgId))
+    .innerJoin(users, eq(orgMembers.userId, users.clerkId)) // Fixed: need to join users table
+    .where(
+      and(
+        eq(orgs.slug, slug),
+        eq(users.clerkId, clerkId) // Fixed: should filter by users.clerkId
+      )
+    )
+    .limit(1);
+
+  if (!orgResult || orgResult.length === 0) {
+    return null;
+  }
+
+  const org = orgResult[0];
+
+  // Get member count
+  const memberCountResult = await db
+    .select({ count: count() })
+    .from(orgMembers)
+    .where(eq(orgMembers.orgId, org.id));
+
+  // Get project count
+  const projectCountResult = await db
+    .select({ count: count() })
+    .from(projects)
+    .where(eq(projects.orgId, org.id));
+
+  return {
+    id: org.id,
+    name: org.name,
+    slug: org.slug,
+    createdAt: org.createdAt,
+    role: org.userRole,
+    memberCount: memberCountResult[0]?.count || 0,
+    projectCount: projectCountResult[0]?.count || 0,
+  };
+};
+
+export const getOrgMembersBySlug = async (slug: string, clerkId: string) => {
+  // First verify user is member of organization
+  const userMembership = await db
+    .select({ orgId: orgs.id })
+    .from(orgs)
+    .innerJoin(orgMembers, eq(orgs.id, orgMembers.orgId))
+    .innerJoin(users, eq(orgMembers.userId, users.clerkId)) // Fixed: need to join users table
+    .where(
+      and(
+        eq(orgs.slug, slug),
+        eq(users.clerkId, clerkId) // Fixed: should filter by users.clerkId
+      )
+    )
+    .limit(1);
+
+  if (!userMembership || userMembership.length === 0) {
+    return null;
+  }
+
+  // Get all members of the organization
+  const members = await db
+    .select({
+      id: orgMembers.id,
+      userId: users.clerkId,
+      email: users.email,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      imageUrl: users.imageUrl,
+      role: orgMembers.role,
+      joinedAt: orgMembers.createdAt, // Fixed: renamed from createdAt to joinedAt for clarity
+    })
+    .from(orgMembers)
+    .innerJoin(users, eq(orgMembers.userId, users.clerkId))
+    .innerJoin(orgs, eq(orgMembers.orgId, orgs.id))
+    .where(eq(orgs.slug, slug))
+    .orderBy(desc(orgMembers.createdAt));
+
+  return members;
+};
+
+export const getOrgProjectsBySlug = async (slug: string, clerkId: string) => {
+  // First verify user is member of organization
+  const userMembership = await db
+    .select({ orgId: orgs.id })
+    .from(orgs)
+    .innerJoin(orgMembers, eq(orgs.id, orgMembers.orgId))
+    .innerJoin(users, eq(orgMembers.userId, users.clerkId)) // Fixed: need to join users table
+    .where(
+      and(
+        eq(orgs.slug, slug),
+        eq(users.clerkId, clerkId) // Fixed: should filter by users.clerkId
+      )
+    )
+    .limit(1);
+
+  if (!userMembership || userMembership.length === 0) {
+    return null;
+  }
+
+  const orgId = userMembership[0].orgId;
+
+  // Get all projects for the organization
+  const orgProjects = await db
+    .select({
+      id: projects.id,
+      orgId: projects.orgId, // Added orgId to response
+      name: projects.name,
+      domain: projects.domain,
+      embedKey: projects.embedKey,
+      createdAt: projects.createdAt,
+    })
+    .from(projects)
+    .where(eq(projects.orgId, orgId))
+    .orderBy(desc(projects.createdAt));
+
+  return orgProjects;
+};
+
+================
+File: src/controllers/projects.controller.ts
+================
+import { db } from "@/db";
+import { projects } from "@/db/schema";
+import { generateEmbedKey } from "@/utils";
+import { eq } from "drizzle-orm";
+
+export async function createProject({ name, domain, orgId }: { name: string, domain: string, orgId: string }) {
+    const project = await db.insert(projects).values({ name, domain, embedKey: generateEmbedKey(), orgId }).returning();
+    return project;
+}
+
+export async function getProjectById(id: string) {
+    const project = await db.select().from(projects).where(eq(projects.id, id));
+    return project[0];
+}
+
+================
+File: src/controllers/user.controller.ts
+================
+import { db } from '@/db';
+import { users } from '@/db/schema';
+import { eq } from 'drizzle-orm';
+
+/**
+ * Syncs user data from Clerk to the database.
+ * If the user exists, updates their information. If not, creates a new user.
+ */
+export async function syncUserToDb({
+  clerkId,
+  firstName,
+  lastName,
+  imageUrl,
+  email,
+}: {
+  clerkId: string;
+  firstName: string | null;
+  lastName: string | null;
+  imageUrl: string | null;
+  email: string;
+}) {
+  // Check if user exists
+  const existingUser = await db.select().from(users).where(eq(users.clerkId, clerkId));
+
+  if (existingUser.length > 0) {
+    // Update existing user
+    const updatedUser = await db
+      .update(users)
+      .set({
+        firstName,
+        lastName,
+        imageUrl,
+        email,
+      })
+      .where(eq(users.clerkId, clerkId))
+      .returning();
+    
+    return updatedUser[0];
+  }
+
+  // Create new user
+  const newUser = await db.insert(users).values({
+    clerkId,
+    firstName,
+    lastName,
+    imageUrl,
+    email,
+  }).returning();
+
+  return newUser[0];
+}
+
+/**
+ * Deletes a user from the database by their Clerk ID.
+ */
+export async function deleteUserFromDb(clerkId: string) {
+  const deletedUser = await db
+    .delete(users)
+    .where(eq(users.clerkId, clerkId))
+    .returning();
+  
+  return deletedUser[0];
+}
+
+================
+File: src/db/index.ts
+================
+import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/neon-http';
+
+export const db = drizzle(process.env.DATABASE_URL!);
+
+================
+File: src/db/schema.ts
+================
+import { pgTable, varchar, text, timestamp, uuid, pgEnum } from "drizzle-orm/pg-core";
+
+export const roleEnum = pgEnum("role", ["owner", "admin", "member"]);
+
+export const users = pgTable("users", {
+  clerkId: varchar("clerk_id").primaryKey(),  // Clerk ID as PK
+  email: text("email").notNull().unique(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  imageUrl: text("image_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const orgs = pgTable("orgs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  slug: varchar("slug", { length: 64 }).notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const orgMembers = pgTable("org_members", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => orgs.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.clerkId, { onDelete: "cascade" }),
+  role: roleEnum("role").default("member").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const projects = pgTable("projects", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => orgs.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  domain: text("domain"),
+  embedKey: varchar("embed_key", { length: 64 }).notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+================
+File: src/routes/clerk.routes.ts
+================
+import { Router } from 'express';
+import express from 'express';
+import { Webhook } from 'svix';
+import { syncUserToDb, deleteUserFromDb } from '@/controllers/user.controller';
+
+/**
+ * Clerk Webhook Routes
+ * 
+ * This module handles Clerk webhook events for user lifecycle management.
+ * It uses the Svix library for proper webhook signature verification.
+ * 
+ * Supported events:
+ * - user.created: Creates a new user in the database
+ * - user.updated: Updates existing user information
+ * - user.deleted: Removes user from the database
+ */
+
+const router = Router();
+const CLERK_WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET as string;
+
+if (!CLERK_WEBHOOK_SECRET) {
+  throw new Error('CLERK_WEBHOOK_SECRET environment variable is required');
+}
+
+router.post(
+  '/',
+  express.raw({ type: 'application/json' }),
+  async (req, res) => {
+    try {
+      console.log('📨 Clerk webhook received');
+      
+      const payload = req.body as Buffer;
+      const headers = req.headers;
+
+      // Verify webhook signature using Svix
+      const wh = new Webhook(CLERK_WEBHOOK_SECRET);
+      let evt: any;
+
+      try {
+        // Convert headers to the format expected by Svix
+        const svixHeaders = {
+          'svix-id': headers['svix-id'] as string,
+          'svix-timestamp': headers['svix-timestamp'] as string,
+          'svix-signature': headers['svix-signature'] as string,
+        };
+        
+        evt = wh.verify(payload, svixHeaders);
+        console.log('✅ Webhook signature verified');
+      } catch (err) {
+        console.error('❌ Webhook signature verification failed:', err);
+        return res.status(400).json({ error: 'Invalid signature' });
+      }
+
+      // Handle the event
+      const eventType = evt.type;
+      console.log(`📋 Processing ${eventType} event`);
+
+      switch (eventType) {
+        case 'user.created': {
+          const { id, first_name, last_name, email_addresses, image_url } = evt.data;
+          const email = email_addresses?.[0]?.email_address;
+          
+          console.log('👤 Creating user:', { id, first_name, last_name, email });
+          
+          await syncUserToDb({
+            clerkId: id,
+            firstName: first_name || null,
+            lastName: last_name || null,
+            imageUrl: image_url || null,
+            email: email || null,
+          });
+          
+          console.log('✅ User synced to database');
+          break;
+        }
+        
+        case 'user.updated': {
+          const { id, first_name, last_name, email_addresses, image_url } = evt.data;
+          console.log('👤 User updated:', id);
+          
+          // Update user in database
+          await syncUserToDb({
+            clerkId: id,
+            firstName: first_name || null,
+            lastName: last_name || null,
+            imageUrl: image_url || null,
+            email: email_addresses?.[0]?.email_address || null,
+          });
+          
+          console.log('✅ User updated in database');
+          break;
+        }
+        
+        case 'user.deleted': {
+          const { id } = evt.data;
+          console.log('🗑️ User deleted:', id);
+          
+          await deleteUserFromDb(id);
+          console.log('✅ User deleted from database');
+          
+          break;
+        }
+        
+        default:
+          console.log(`Unhandled event type: ${eventType}`);
+      }
+
+      res.status(200).json({ 
+        received: true, 
+        eventType,
+        userId: evt.data?.id 
+      });
+      
+    } catch (err) {
+      console.error('❌ Webhook processing error:', err);
+      res.status(500).json({ error: 'Webhook handler failed' });
+    }
+  }
+);
+
+export default router;
+
+================
+File: src/routes/orgs.routes.ts
+================
+import { createOrg, getOrgsByClerkId, getOrgBySlug, getOrgMembersBySlug, getOrgProjectsBySlug } from "@/controllers/orgs.controller";
+import { db } from "@/db";
+import { orgMembers } from "@/db/schema";
+import { createOrgSchema } from "@/types/orgs";
+import { getAuth, requireAuth } from "@clerk/express";
+import { Router } from "express";
+
+const router = Router();
+
+// Get all organizations for the authenticated user
+router.get("/", requireAuth(), async (req, res) => {
+    try {
+        const auth = getAuth(req);   
+        const clerkId = auth.userId;
+        const orgs = await getOrgsByClerkId(clerkId!);
+
+        res.json(orgs);
+    } catch (error) {
+        console.error("Error fetching organizations:", error);
+        res.status(500).json({ error: "Failed to fetch organizations" });
+    }
+});
+
+// Create a new organization
+router.post("/create", requireAuth(), async (req, res) => {
+    try {
+        const auth = getAuth(req);
+        const clerkId = auth.userId;
+
+        const result = createOrgSchema.safeParse(req.body);
+        if (!result.success) {
+            return res.status(400).json({ 
+                error: "Validation failed", 
+                details: result.error.flatten() 
+            });
+        }
+
+        const { name, slug } = result.data;
+
+        // Create the organization in the db
+        const org = await createOrg({ name, slug, createdBy: clerkId! });
+        
+        // Add org member for current user as admin
+        await db.insert(orgMembers).values({ 
+            orgId: org[0].id, 
+            userId: clerkId!, 
+            role: "admin" 
+        });
+
+        res.status(201).json(org[0]);
+    } catch (error) {
+        console.error("Error creating organization:", error);
+        res.status(500).json({ error: "Failed to create organization" });
+    }
+});
+
+// Get organization details by slug
+router.get("/:slug", requireAuth(), async (req, res) => {
+    try {
+        const auth = getAuth(req);
+        const clerkId = auth.userId;
+        const { slug } = req.params;
+
+        const org = await getOrgBySlug(slug, clerkId!);
+        
+        if (!org) {
+            return res.status(404).json({ 
+                error: "Organization not found or you don't have access to it" 
+            });
+        }
+
+        res.json(org);
+    } catch (error) {
+        console.error("Error fetching organization:", error);
+        res.status(500).json({ error: "Failed to fetch organization" });
+    }
+});
+
+// Get organization members by slug
+router.get("/:slug/members", requireAuth(), async (req, res) => {
+    try {
+        const auth = getAuth(req);
+        const clerkId = auth.userId;
+        const { slug } = req.params;
+
+        const members = await getOrgMembersBySlug(slug, clerkId!);
+        
+        if (!members) {
+            return res.status(404).json({ 
+                error: "Organization not found or you don't have access to it" 
+            });
+        }
+
+        res.json(members);
+    } catch (error) {
+        console.error("Error fetching organization members:", error);
+        res.status(500).json({ error: "Failed to fetch organization members" });
+    }
+});
+
+// Get organization projects by slug
+router.get("/:slug/projects", requireAuth(), async (req, res) => {
+    try {
+        const auth = getAuth(req);
+        const clerkId = auth.userId;
+        const { slug } = req.params;
+
+        const projects = await getOrgProjectsBySlug(slug, clerkId!);
+        
+        if (!projects) {
+            return res.status(404).json({ 
+                error: "Organization not found or you don't have access to it" 
+            });
+        }
+
+        res.json(projects);
+    } catch (error) {
+        console.error("Error fetching organization projects:", error);
+        res.status(500).json({ error: "Failed to fetch organization projects" });
+    }
+});
+
+export default router;
+
+================
+File: src/routes/projects.route.ts
+================
+import { createProject, getProjectById } from "@/controllers/projects.controller";
+import { requireAuth } from "@clerk/express";
+import { Router } from "express";
+
+const router = Router();
+
+router.post("/", requireAuth(), async (req, res) => {
+    const { name, domain, orgId } = req.body;
+    const project = await createProject({ name, domain, orgId: orgId! });
+    res.json(project);
+});
+
+router.get("/:id", requireAuth(), async (req, res) => {
+    const { id } = req.params;
+    const project = await getProjectById(id);
+    res.json(project);  
+});
+
+export default router;
+
+================
+File: src/types/orgs.ts
+================
+import z from "zod";
+
+export const createOrgSchema = z.object({
+    name : z.string().min(4, "name is required"),
+    slug : z.string().min(4, "slug is required").max(10, "slug must be at most 10 characters long"),
+})
+
+================
+File: src/types/user.ts
+================
+import { z } from "zod";
+
+export const createUserSchema = z.object({
+  clerkId: z.string().min(1, "clerkId is required"),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  imageUrl: z.string().optional(),
+  email: z.string().email("Invalid email"),
+});
+  
+
+export type CreateUserInput = z.infer<typeof createUserSchema>;
+
+================
+File: src/utils/index.ts
+================
+import crypto from "crypto";
+
+export function generateEmbedKey() {
+    return "prj_" + crypto.randomBytes(16).toString("hex");
+}
+
+================
+File: src/server.ts
+================
+import express from 'express';
+import cors from 'cors';
+import morgan from 'morgan';
+import helmet from 'helmet';
+import dotenv from 'dotenv';
+import { clerkMiddleware } from '@clerk/express'
+import clerkRoutes from "@/routes/clerk.routes"
+import orgsRoutes from "@/routes/orgs.routes"
+import projectsRoutes from "@/routes/projects.route"
+
+dotenv.config();
+
+const app = express();
+
+// Middleware setup
+app.use(cors());
+app.use(helmet());
+app.use(morgan('dev'));
+
+// Clerk middleware for authentication
+app.use(clerkMiddleware());
+
+// Webhook routes (before express.json() to get raw body)
+app.use('/api/clerk-webhook', clerkRoutes);
+
+// JSON parsing for other routes
+app.use(express.json());
+
+app.get('/health', (_, res) => {
+  res.json({ status: 'healthy' });
+});
+
+
+// app.use('/users', userRoutes);
+app.use('/orgs',orgsRoutes)
+app.use('/projects', projectsRoutes)
+
+const PORT = process.env.PORT || 8080;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server is running on http://localhost:${PORT}`);
+});
+
+================
+File: drizzle.config.ts
+================
+import 'dotenv/config';
+import { defineConfig } from 'drizzle-kit';
+
+export default defineConfig({
+  out: './drizzle',
+  schema: './src/db/schema.ts',
+  dialect: 'postgresql',
+  dbCredentials: {
+    url: process.env.DATABASE_URL!,
+  },
+  
+});
+
+================
+File: package.json
+================
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "ts-node-dev --respawn  --require tsconfig-paths/register src/server.ts",
+    "start": "node dist/server.js",
+    "build": "tsc",
+    "lint": "eslint . --ext .ts",
+    "generate": "pnpm exec drizzle-kit generate",
+    "migrate": "pnpm exec drizzle-kit migrate"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@clerk/backend": "^2.17.1",
+    "@clerk/express": "^1.7.21",
+    "@neondatabase/serverless": "^1.0.1",
+    "@types/express": "^5.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.0.1",
+    "drizzle-orm": "^0.44.4",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "morgan": "^1.10.0",
+    "pg": "^8.16.3",
+    "postgres": "^3.4.7",
+    "svix": "^1.76.1",
+    "zod": "^3.25.74"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/morgan": "^1.9.10",
+    "@types/node": "^24.0.10",
+    "drizzle-kit": "^0.31.4",
+    "ts-node-dev": "^2.0.0",
+    "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  }
+}
+
+================
+File: tsconfig.json
+================
+{   
+  "compilerOptions": {
+    /* Visit https://aka.ms/tsconfig to read more about this file */
+
+    /* Projects */
+    // "incremental": true,                              /* Save .tsbuildinfo files to allow for incremental compilation of projects. */
+    // "composite": true,                                /* Enable constraints that allow a TypeScript project to be used with project references. */
+    // "tsBuildInfoFile": "./.tsbuildinfo",              /* Specify the path to .tsbuildinfo incremental compilation file. */
+    // "disableSourceOfProjectReferenceRedirect": true,  /* Disable preferring source files instead of declaration files when referencing composite projects. */
+    // "disableSolutionSearching": true,                 /* Opt a project out of multi-project reference checking when editing. */
+    // "disableReferencedProjectLoad": true,             /* Reduce the number of projects loaded automatically by TypeScript. */
+
+    /* Language and Environment */
+    "target": "es2016",                             /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
+    // "lib": [],                                        /* Specify a set of bundled library declaration files that describe the target runtime environment. */
+    // "jsx": "preserve",                                /* Specify what JSX code is generated. */
+    // "experimentalDecorators": true,                   /* Enable experimental support for legacy experimental decorators. */
+    // "emitDecoratorMetadata": true,                    /* Emit design-type metadata for decorated declarations in source files. */
+    // "jsxFactory": "",                                 /* Specify the JSX factory function used when targeting React JSX emit, e.g. 'React.createElement' or 'h'. */
+    // "jsxFragmentFactory": "",                         /* Specify the JSX Fragment reference used for fragments when targeting React JSX emit e.g. 'React.Fragment' or 'Fragment'. */
+    // "jsxImportSource": "",                            /* Specify module specifier used to import the JSX factory functions when using 'jsx: react-jsx*'. */
+    // "reactNamespace": "",                             /* Specify the object invoked for 'createElement'. This only applies when targeting 'react' JSX emit. */
+    // "noLib": true,                                    /* Disable including any library files, including the default lib.d.ts. */
+    // "useDefineForClassFields": true,                  /* Emit ECMAScript-standard-compliant class fields. */
+    // "moduleDetection": "auto",                        /* Control what method is used to detect module-format JS files. */
+
+    /* Modules */
+    "module": "commonjs",                                /* Specify what module code is generated. */
+    "rootDir": "./src",                                  /* Specify the root folder within your source files. */
+    // "moduleResolution": "node10",                     /* Specify how TypeScript looks up a file from a given module specifier. */
+    "baseUrl": ".",                                  /* Specify the base directory to resolve non-relative module names. */
+    "paths": {
+      "@/*": ["src/*"]        // Map @/ to ./src/
+    },                                     /* Specify a set of entries that re-map imports to additional lookup locations. */
+    // "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
+    // "typeRoots": [],                                  /* Specify multiple folders that act like './node_modules/@types'. */
+    // "types": [],                                      /* Specify type package names to be included without being referenced in a source file. */
+    // "allowUmdGlobalAccess": true,                     /* Allow accessing UMD globals from modules. */
+    // "moduleSuffixes": [],                             /* List of file name suffixes to search when resolving a module. */
+    // "allowImportingTsExtensions": true,               /* Allow imports to include TypeScript file extensions. Requires '--moduleResolution bundler' and either '--noEmit' or '--emitDeclarationOnly' to be set. */
+    // "resolvePackageJsonExports": true,                /* Use the package.json 'exports' field when resolving package imports. */
+    // "resolvePackageJsonImports": true,                /* Use the package.json 'imports' field when resolving imports. */
+    // "customConditions": [],                           /* Conditions to set in addition to the resolver-specific defaults when resolving imports. */
+    // "resolveJsonModule": true,                        /* Enable importing .json files. */
+    // "allowArbitraryExtensions": true,                 /* Enable importing files with any extension, provided a declaration file is present. */
+    // "noResolve": true,                                /* Disallow 'import's, 'require's or '<reference>'s from expanding the number of files TypeScript should add to a project. */
+
+    /* JavaScript Support */
+    // "allowJs": true,                                  /* Allow JavaScript files to be a part of your program. Use the 'checkJS' option to get errors from these files. */
+    // "checkJs": true,                                  /* Enable error reporting in type-checked JavaScript files. */
+    // "maxNodeModuleJsDepth": 1,                        /* Specify the maximum folder depth used for checking JavaScript files from 'node_modules'. Only applicable with 'allowJs'. */
+
+    /* Emit */
+    // "declaration": true,                              /* Generate .d.ts files from TypeScript and JavaScript files in your project. */
+    // "declarationMap": true,                           /* Create sourcemaps for d.ts files. */
+    // "emitDeclarationOnly": true,                      /* Only output d.ts files and not JavaScript files. */
+    // "sourceMap": true,                                /* Create source map files for emitted JavaScript files. */
+    // "inlineSourceMap": true,                          /* Include sourcemap files inside the emitted JavaScript. */
+    // "outFile": "./",                                  /* Specify a file that bundles all outputs into one JavaScript file. If 'declaration' is true, also designates a file that bundles all .d.ts output. */
+    "outDir": "./dist",                                   /* Specify an output folder for all emitted files. */
+    // "removeComments": true,                           /* Disable emitting comments. */
+    // "noEmit": true,                                   /* Disable emitting files from a compilation. */
+    // "importHelpers": true,                            /* Allow importing helper functions from tslib once per project, instead of including them per-file. */
+    // "importsNotUsedAsValues": "remove",               /* Specify emit/checking behavior for imports that are only used for types. */
+    // "downlevelIteration": true,                       /* Emit more compliant, but verbose and less performant JavaScript for iteration. */
+    // "sourceRoot": "",                                 /* Specify the root path for debuggers to find the reference source code. */
+    // "mapRoot": "",                                    /* Specify the location where debugger should locate map files instead of generated locations. */
+    // "inlineSources": true,                            /* Include source code in the sourcemaps inside the emitted JavaScript. */
+    // "emitBOM": true,                                  /* Emit a UTF-8 Byte Order Mark (BOM) in the beginning of output files. */
+    // "newLine": "crlf",                                /* Set the newline character for emitting files. */
+    // "stripInternal": true,                            /* Disable emitting declarations that have '@internal' in their JSDoc comments. */
+    // "noEmitHelpers": true,                            /* Disable generating custom helper functions like '__extends' in compiled output. */
+    // "noEmitOnError": true,                            /* Disable emitting files if any type checking errors are reported. */
+    // "preserveConstEnums": true,                       /* Disable erasing 'const enum' declarations in generated code. */
+    // "declarationDir": "./",                           /* Specify the output directory for generated declaration files. */
+    // "preserveValueImports": true,                     /* Preserve unused imported values in the JavaScript output that would otherwise be removed. */
+
+    /* Interop Constraints */
+    // "isolatedModules": true,                          /* Ensure that each file can be safely transpiled without relying on other imports. */
+    // "verbatimModuleSyntax": true,                     /* Do not transform or elide any imports or exports not marked as type-only, ensuring they are written in the output file's format based on the 'module' setting. */
+    // "allowSyntheticDefaultImports": true,             /* Allow 'import x from y' when a module doesn't have a default export. */
+    "esModuleInterop": true,                             /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */
+    // "preserveSymlinks": true,                         /* Disable resolving symlinks to their realpath. This correlates to the same flag in node. */
+    "forceConsistentCasingInFileNames": true,            /* Ensure that casing is correct in imports. */
+
+    /* Type Checking */
+    "strict": true,                                      /* Enable all strict type-checking options. */
+    // "noImplicitAny": true,                            /* Enable error reporting for expressions and declarations with an implied 'any' type. */
+    // "strictNullChecks": true,                         /* When type checking, take into account 'null' and 'undefined'. */
+    // "strictFunctionTypes": true,                      /* When assigning functions, check to ensure parameters and the return values are subtype-compatible. */
+    // "strictBindCallApply": true,                      /* Check that the arguments for 'bind', 'call', and 'apply' methods match the original function. */
+    // "strictPropertyInitialization": true,             /* Check for class properties that are declared but not set in the constructor. */
+    // "noImplicitThis": true,                           /* Enable error reporting when 'this' is given the type 'any'. */
+    // "useUnknownInCatchVariables": true,               /* Default catch clause variables as 'unknown' instead of 'any'. */
+    // "alwaysStrict": true,                             /* Ensure 'use strict' is always emitted. */
+    // "noUnusedLocals": true,                           /* Enable error reporting when local variables aren't read. */
+    // "noUnusedParameters": true,                       /* Raise an error when a function parameter isn't read. */
+    // "exactOptionalPropertyTypes": true,               /* Interpret optional property types as written, rather than adding 'undefined'. */
+    // "noImplicitReturns": true,                        /* Enable error reporting for codepaths that do not explicitly return in a function. */
+    // "noFallthroughCasesInSwitch": true,               /* Enable error reporting for fallthrough cases in switch statements. */
+    // "noUncheckedIndexedAccess": true,                 /* Add 'undefined' to a type when accessed using an index. */
+    // "noImplicitOverride": true,                       /* Ensure overriding members in derived classes are marked with an override modifier. */
+    // "noPropertyAccessFromIndexSignature": true,       /* Enforces using indexed accessors for keys declared using an indexed type. */
+    // "allowUnusedLabels": true,                        /* Disable error reporting for unused labels. */
+    // "allowUnreachableCode": true,                     /* Disable error reporting for unreachable code. */
+
+    /* Completeness */
+    // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
+    "skipLibCheck": true,                                /* Skip type checking all .d.ts files. */
+  },
+  "include": ["src"],
+}
+
+
+
+
+================================================================
+End of Codebase
+================================================================

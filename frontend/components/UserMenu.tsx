@@ -8,9 +8,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, Settings, User, Bell, HelpCircle } from "lucide-react";
-
-import UserAvatar from "@/components/UserAvatar";
+import { LogOut, User } from "lucide-react";
 
 const UserMenu = () => {
 

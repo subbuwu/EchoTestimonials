@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react";
+import Image from "next/image";
 
 type UserAvatarProps = {
   image: string;
@@ -9,9 +10,11 @@ type UserAvatarProps = {
 const UserAvatar: React.FC<UserAvatarProps> = ({ image }) => {
   return (
     <div>
-      <img
+      <Image
         src={image}
-        className="rounded-full h-[4rem] w-[4rem]"
+        width={64}
+        height={64}
+        className="rounded-full"
         alt="User Avatar"
       />
     </div>

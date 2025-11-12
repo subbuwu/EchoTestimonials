@@ -7,13 +7,12 @@ import { RainbowButton } from '../magicui/rainbow-button'
 
 const LandingHero = ({isAuthenticated} : {isAuthenticated : boolean}) => {
     const router = useRouter();
-    const words = ["Dazzle", "Amaze", "Analyze"];
     const [displayText, setDisplayText] = useState('');
     const [wordIndex, setWordIndex] = useState(0);
     const [isDeleting, setIsDeleting] = useState(false);
     
     useEffect(() => {
-        let timer;
+        const words = ["Dazzle", "Amaze", "Analyze"];
         const currentWord = words[wordIndex];
         const updateText = () => {
             setDisplayText(prev => {
@@ -33,10 +32,10 @@ const LandingHero = ({isAuthenticated} : {isAuthenticated : boolean}) => {
             });
         };
 
-        timer = setTimeout(updateText, isDeleting ? 100 : 200); 
+        const timer = setTimeout(updateText, isDeleting ? 100 : 200); 
 
         return () => clearTimeout(timer);
-    }, [displayText, isDeleting, wordIndex, words]);
+    }, [displayText, isDeleting, wordIndex]);
 
     const handleGetStartedClick = () => {
         if(isAuthenticated){

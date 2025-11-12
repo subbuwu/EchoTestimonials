@@ -2,86 +2,155 @@
 import { useQuery } from "@tanstack/react-query";
 import { getOrgs } from "@/services/orgsServices";
 import { useAuth } from "@clerk/nextjs";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { OrgSummary } from "@/types/Orgs";
+import { CreateOrganizationModal } from "@/components/Dashboard/CreateOrganizationModal";
 import { 
   Building2, 
   Users, 
-  Settings, 
   Crown, 
   Shield, 
   User,
   Plus,
   Search,
   Filter,
-  ChevronRight,
   Folder,
-  Star,
   Clock,
-  Archive
+  Grid3X3,
+  List,
+  ArrowUpRight,
+  AlertCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+
+type ViewMode = 'grid' | 'list';
+type FilterType = 'all' | 'owned' | 'member';
 
 export default function DashboardPage() {
   const { getToken } = useAuth();
   const router = useRouter();
-  const [selectedOrg, setSelectedOrg] = useState<OrgSummary | null>(null);
+  const [selectedOrg] = useState<OrgSummary | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeFilter, setActiveFilter] = useState("all");
+  const [activeFilter, setActiveFilter] = useState<FilterType>("all");
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [showFilters, setShowFilters] = useState(false);
+  const [createOrgModal, setCreateOrgModal] = useState(false);
 
   const { data: orgs, isLoading, error } = useQuery({
     queryKey: ["orgs"],
     queryFn: async () => {
       const token = await getToken();
-      return getOrgs(token!);
+      const orgData = await getOrgs(token!);
+      return orgData;
     }
   });
+
+  // Enhanced filtering and statistics
+  const statistics = useMemo(() => {
+    if (!orgs) return null;
+    
+    const owned = orgs.filter(org => org.role === 'owner').length;
+    const admin = orgs.filter(org => org.role === 'admin').length;
+    const member = orgs.filter(org => org.role === 'member').length;
+    const totalMembers = orgs.reduce((sum, org) => sum + (org.memberCount || 0), 0);
+    const totalProjects = orgs.reduce((sum, org) => sum + (org.projectCount || 0), 0);
+
+    return { owned, admin, member, totalMembers, totalProjects };
+  }, [orgs]);
+
+  const filterItems = useMemo(() => {
+    if (!orgs) return [];
+    
+    return [
+      { 
+        id: "all" as FilterType, 
+        label: "All Organizations", 
+        icon: Folder, 
+        count: orgs.length,
+        color: "text-blue-400"
+      },
+      { 
+        id: "owned" as FilterType, 
+        label: "Owned by Me", 
+        icon: Crown, 
+        count: orgs.filter(org => org.role === 'owner').length,
+        color: "text-yellow-400"
+      },
+      { 
+        id: "member" as FilterType, 
+        label: "Member", 
+        icon: User, 
+        count: orgs.filter(org => org.role === 'member').length,
+        color: "text-gray-400"
+      },
+    ];
+  }, [orgs]);
+
+  const filteredOrgs = useMemo(() => {
+    if (!orgs) return [];
+    
+    return orgs.filter(org => {
+      const matchesSearch = org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        org.slug.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      if (activeFilter === "all") return matchesSearch;
+      if (activeFilter === "owned") return matchesSearch && org.role === 'owner';
+      if (activeFilter === "member") return matchesSearch && org.role === 'member';
+      
+      return matchesSearch;
+    });
+  }, [orgs, searchTerm, activeFilter]);
 
   const getRoleIcon = (role: string) => {
     switch (role) {
       case 'owner':
-        return <Crown className="h-4 w-4 text-flavescent" />;
+        return <Crown className="h-4 w-4 text-yellow-400" />;
       case 'admin':
-        return <Shield className="h-4 w-4 text-blue" />;
+        return <Shield className="h-4 w-4 text-blue-400" />;
       default:
-        return <User className="h-4 w-4 text-muted-foreground" />;
+        return <User className="h-4 w-4 text-gray-400" />;
     }
   };
 
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'owner':
-        return 'bg-flavescent/20 text-flavescent border-flavescent/30';
+        return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
       case 'admin':
-        return 'bg-blue/20 text-blue border-blue/30';
+        return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
       default:
-        return 'bg-muted/20 text-muted-foreground border-muted/30';
+        return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
     }
   };
 
-  const filterItems = [
-    { id: "all", label: "All Organizations", icon: Folder, count: orgs?.length || 0 },
-  ];
-
-  const filteredOrgs = orgs?.filter(org => {
-    const matchesSearch = org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      org.slug.toLowerCase().includes(searchTerm.toLowerCase());
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
     
-    if (activeFilter === "all") return matchesSearch;
-    // Add other filter logic here when implemented
-    return matchesSearch;
-  }) || [];
+    if (diffInHours < 24) {
+      return `${diffInHours}h ago`;
+    } else {
+      const diffInDays = Math.floor(diffInHours / 24);
+      if (diffInDays < 7) {
+        return `${diffInDays}d ago`;
+      } else {
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
+      }
+    }
+  };
 
   if (isLoading) {
     return (
-      <div className="flex h-full">
+      <div className="flex h-screen bg-gray-950">
         {/* Left Panel Skeleton */}
-        <div className="w-80 bg-raisin border-r border-muted/30 p-6 min-h-screen">
+        <div className="w-80 bg-gray-900 border-r border-gray-800 p-6">
           <div className="animate-pulse space-y-4">
-            <div className="h-6 bg-onyx rounded w-32"></div>
+            <div className="h-6 bg-gray-800 rounded w-32"></div>
             <div className="space-y-2">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-10 bg-onyx rounded"></div>
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-12 bg-gray-800 rounded-lg"></div>
               ))}
             </div>
           </div>
@@ -90,10 +159,15 @@ export default function DashboardPage() {
         {/* Main Content Skeleton */}
         <div className="flex-1 p-6">
           <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-raisin rounded w-48"></div>
+            <div className="h-8 bg-gray-800 rounded w-48"></div>
+            <div className="grid grid-cols-4 gap-4 mb-8">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-24 bg-gray-800 rounded-xl"></div>
+              ))}
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-32 bg-raisin rounded-xl"></div>
+                <div key={i} className="h-48 bg-gray-800 rounded-xl"></div>
               ))}
             </div>
           </div>
@@ -104,163 +178,296 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center h-screen bg-gray-950">
         <div className="text-center">
-          <div className="text-pink mb-2">Error fetching organizations</div>
-          <p className="text-muted-foreground">Please try again later</p>
+          <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
+          <div className="text-red-400 text-xl font-semibold mb-2">Error fetching organizations</div>
+          <p className="text-gray-400">Please try again later</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-full">
-      {/* Left Navigation Panel */}
-      <div className="w-80 bg-eerie border-r border-muted/30 flex flex-col min-h-screen">
+    <div className="flex h-screen bg-gray-950 text-gray-100">
+      <CreateOrganizationModal open={createOrgModal} setOpen={setCreateOrgModal} />
+      {/* Enhanced Left Navigation Panel */}
+      <div className="w-80 bg-eerie  border-r border-gray-800 flex flex-col">
         {/* Panel Header */}
-        <div className="p-6 border-b border-muted/30">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-foreground">Organizations</h2>
-            <button className="bg-flavescent text-eerie p-2 rounded-lg hover:bg-flavescent/90 transition-colors">
+        <div className="p-6 border-b border-gray-800">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-white">Organizations</h2>
+            <button 
+              onClick={() => setCreateOrgModal(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white p-2.5 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
+            >
               <Plus className="h-4 w-4" />
             </button>
           </div>
           
-          {/* Search */}
+          {/* Search with enhanced styling */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
               placeholder="Search organizations..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-eerie border border-muted/30 rounded-lg pl-10 pr-4 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue/50"
+              className="w-full bg-gray-800 border border-gray-700 rounded-xl pl-10 pr-4 py-3 text-gray-100 placeholder:text-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
             />
           </div>
         </div>
 
-        {/* Filter Categories */}
-        <div className="p-6 flex-1">
-          <div className="space-y-2 mb-6">
+        {/* Statistics Cards */}
+        {statistics && (
+          <div className="p-6 border-b border-gray-800">
+            <h3 className="text-sm font-medium text-gray-400 mb-4 uppercase tracking-wider">Overview</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-gray-800 p-3 rounded-xl">
+                <div className="text-2xl font-bold text-blue-400">{statistics.totalProjects}</div>
+                <div className="text-xs text-gray-400">Projects</div>
+              </div>
+              <div className="bg-gray-800 p-3 rounded-xl">
+                <div className="text-2xl font-bold text-green-400">{statistics.totalMembers}</div>
+                <div className="text-xs text-gray-400">Members</div>
+              </div>
+              <div className="bg-gray-800 p-3 rounded-xl">
+                <div className="text-2xl font-bold text-yellow-400">{statistics.owned}</div>
+                <div className="text-xs text-gray-400">Owned</div>
+              </div>
+              <div className="bg-gray-800 p-3 rounded-xl">
+                <div className="text-2xl font-bold text-purple-400">{statistics.admin}</div>
+                <div className="text-xs text-gray-400">Admin</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Enhanced Filter Categories */}
+        <div className="p-6 flex-1 overflow-y-auto">
+          <div className="space-y-2">
             {filterItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => setActiveFilter(item.id)}
-                className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${
+                className={`w-full flex items-center justify-between p-3 rounded-xl transition-all duration-200 group ${
                   activeFilter === item.id
-                    ? 'bg-blue/20 text-blue border border-blue/30'
-                    : 'hover:bg-eerie text-muted-foreground hover:text-foreground'
+                    ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 shadow-lg'
+                    : 'hover:bg-gray-800 text-gray-400 hover:text-gray-200 border border-transparent'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <item.icon className="h-4 w-4" />
+                  <item.icon className={`h-4 w-4 ${activeFilter === item.id ? item.color : ''} group-hover:scale-110 transition-transform`} />
                   <span className="font-medium">{item.label}</span>
                 </div>
-                <span className="text-xs bg-muted/30 px-2 py-1 rounded-full">
+                <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                  activeFilter === item.id 
+                    ? 'bg-blue-500/20 text-blue-400' 
+                    : 'bg-gray-800 text-gray-400'
+                }`}>
                   {item.count}
                 </span>
               </button>
             ))}
           </div>
-
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <div className="p-3 bg-eerie border-b border-muted/30">
+      {/* Enhanced Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Enhanced Header */}
+        <div className="p-6 bg-eerie border-b border-gray-800">
           <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                <span>Organizations</span>
-                {activeFilter && (
+            {/* <div>
+              <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                <span className="text-base">Organizations</span>
+                {activeFilter !== 'all' && (
                   <>
                     <ChevronRight className="h-4 w-4" />
-                    <span className="capitalize">{activeFilter}</span>
+                    <span className="capitalize text-blue-400 text">{filterItems.find(f => f.id === activeFilter)?.label}</span>
                   </>
                 )}
               </div>
-            </div>
-            {/* <div className="flex items-center gap-3">
-              <button className="bg-eerie border border-muted/30 rounded-lg px-4 py-2 text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
+            </div> */}
+            <div className="flex items-center gap-3">
+              {/* View Mode Toggle */}
+              <div className="flex items-center bg-gray-800 rounded-xl p-1">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-2 rounded-lg transition-all ${
+                    viewMode === 'grid' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-gray-200'
+                  }`}
+                >
+                  <Grid3X3 className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-2 rounded-lg transition-all ${
+                    viewMode === 'list' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-gray-200'
+                  }`}
+                >
+                  <List className="h-4 w-4" />
+                </button>
+              </div>
+              
+              <button 
+                onClick={() => setShowFilters(!showFilters)}
+                className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-gray-300 hover:text-white transition-colors flex items-center gap-2"
+              >
                 <Filter className="h-4 w-4" />
-                Filter
+                Filters
               </button>
-              <button className="bg-flavescent text-eerie px-4 py-2 rounded-lg font-medium hover:bg-flavescent/90 transition-colors flex items-center gap-2">
+              <button 
+                onClick={() => setCreateOrgModal(true)}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-xl font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center gap-2 shadow-lg"
+              >
                 <Plus className="h-4 w-4" />
                 New Organization
               </button>
-            </div> */}
+            </div>
           </div>
         </div>
 
-        {/* Organizations Grid */}
-        <div className="flex-1 overflow-y-auto p-6">
+        {/* Organizations Content */}
+        <div className="flex-1 overflow-y-auto p-6 bg-eerie">
           {filteredOrgs.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className={viewMode === 'grid' 
+              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" 
+              : "space-y-4"
+            }>
               {filteredOrgs.map((org) => (
                 <div
                   key={org.id}
                   onClick={() => router.push(`/dashboard/orgs/${org.slug}`)}
                   className={`
-                    bg-card border rounded-xl p-6 cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg
+                    group bg-raisin border border-onyx rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:border-gray-700 hover:shadow-2xl hover:shadow-blue-500/10 hover:-translate-y-1
                     ${selectedOrg?.id === org.id 
-                      ? 'border-blue ring-2 ring-blue/20 shadow-lg' 
-                      : 'border-muted/30 hover:border-muted/50'
+                      ? 'border-blue-500 ring-2 ring-blue-500/20 shadow-lg shadow-blue-500/20' 
+                      : ''
                     }
+                    ${viewMode === 'list' ? 'flex items-center gap-6' : ''}
                   `}
                 >
-                  {/* Organization Icon */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue to-flavescent rounded-xl flex items-center justify-center">
-                      <Building2 className="h-6 w-6 text-eerie" />
+                  {/* Organization Icon and Header */}
+                  <div className={`flex items-center ${viewMode === 'list' ? 'gap-4' : 'justify-between mb-4'}`}>
+                    <div className="relative">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 rounded-2xl flex items-center justify-center shadow-lg">
+                        <Building2 className="h-6 w-6 text-white" />
+                      </div>
                     </div>
+                    
+                    {viewMode === 'grid' && (
+                      <div className="flex gap-2">
+                        <div className={`px-2 py-1 rounded-lg border text-xs font-medium flex items-center gap-1 ${getRoleColor(org.role)}`}>
+                          {getRoleIcon(org.role)}
+                          {org.role}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Organization Info */}
+                  <div className={`${viewMode === 'list' ? 'flex-1' : 'mb-4'}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="text-lg font-semibold text-white truncate">
+                        {org.name}
+                      </h3>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-gray-400">
+                      <span>@{org.slug}</span>
+                      {org.createdAt && (
+                        <span className="px-2 py-0.5 bg-gray-800 rounded-full text-xs">
+                          {formatDate(org.createdAt)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {viewMode === 'list' && (
                     <div className={`px-2 py-1 rounded-lg border text-xs font-medium flex items-center gap-1 ${getRoleColor(org.role)}`}>
                       {getRoleIcon(org.role)}
                       {org.role}
                     </div>
-                  </div>
+                  )}
 
-                  {/* Organization Info */}
-                  <div className="mb-4">
-                    <h3 className="text-lg font-semibold text-foreground mb-1 truncate">
-                      {org.name}
-                    </h3>
-                    <p className="text-muted-foreground text-sm truncate">
-                      @{org.slug}
-                    </p>
-                  </div>
+                  {/* Enhanced Stats */}
+                  {viewMode === 'grid' && (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="flex items-center gap-2 text-gray-400">
+                          <Users className="h-4 w-4" />
+                          <span>{org.memberCount ?? 0} members</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-400">
+                          <Folder className="h-4 w-4" />
+                          <span>{org.projectCount ?? 0} projects</span>
+                        </div>
+                      </div>
+                      
+                      {org.createdAt && (
+                        <div className="flex items-center justify-between pt-3 border-t border-gray-800">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-3 w-3 text-gray-400" />
+                            <span className="text-xs text-gray-400">
+                              Created {formatDate(org.createdAt)}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-                  {/* Quick Stats */}
-                  {/* <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-1 text-muted-foreground">
-                      <Users className="h-4 w-4" />
-                      <span>12 members</span>
+                  {/* List view stats */}
+                  {viewMode === 'list' && (
+                    <div className="flex items-center gap-6 text-sm text-gray-400">
+                      <div className="flex items-center gap-1">
+                        <Users className="h-4 w-4" />
+                        <span>{org.memberCount ?? 0}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Folder className="h-4 w-4" />
+                        <span>{org.projectCount ?? 0}</span>
+                      </div>
+                      {org.createdAt && (
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          <span>{formatDate(org.createdAt)}</span>
+                        </div>
+                      )}
+                      <ArrowUpRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
-                    <div className="flex items-center gap-1 text-muted-foreground">
-                      <Folder className="h-4 w-4" />
-                      <span>5 projects</span>
-                    </div>
-                  </div> */}
+                  )}
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-2">
-                No organizations found
+            <div className="text-center py-20">
+              <div className="relative mb-6">
+                <div className="w-24 h-24 bg-gray-800 rounded-2xl flex items-center justify-center mx-auto">
+                  <Building2 className="h-12 w-12 text-gray-600" />
+                </div>
+                <div className="absolute top-0 right-8 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                  <Plus className="h-4 w-4 text-white" />
+                </div>
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-3">
+                {searchTerm ? 'No organizations found' : 'No organizations yet'}
               </h3>
-              <p className="text-muted-foreground">
-                {searchTerm ? 'Try adjusting your search terms' : 'Create your first organization to get started'}
+              <p className="text-gray-400 mb-8 max-w-sm mx-auto">
+                {searchTerm 
+                  ? 'Try adjusting your search terms or filters to find what you\'re looking for.' 
+                  : 'Create your first organization to start collaborating with your team and managing projects.'
+                }
               </p>
+              {!searchTerm && (
+                <button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg">
+                  Create Organization
+                </button>
+              )}
             </div>
           )}
         </div>
       </div>
-
-     
     </div>
   );
 }
