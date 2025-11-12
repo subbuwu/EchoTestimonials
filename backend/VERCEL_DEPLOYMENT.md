@@ -38,11 +38,14 @@ The `module-alias` package reads the `_moduleAliases` configuration from `packag
 
 ## Vercel Dashboard Settings
 
-In your Vercel project settings:
+In your Vercel project settings (Build and Deployment section):
 
-1. **Root Directory**: Set to `backend`
-2. **Framework Preset**: Leave as "Other" or "None"
-3. **Build Command**: Leave empty (Vercel compiles serverless functions automatically)
-4. **Output Directory**: Leave empty (not needed for serverless functions)
-5. **Install Command**: `pnpm install` (or leave default)
+1. **Framework Preset**: Change from "Express" to **"Other"** (or leave as "Express" if it works)
+2. **Build Command**: Keep as **"None"** with Override **disabled** (Vercel compiles serverless functions automatically)
+3. **Output Directory**: Keep as **"N/A"** with Override **disabled** (not needed for serverless functions)
+4. **Install Command**: Leave as default (will auto-detect `pnpm install`)
+5. **Root Directory**: Set to **`backend`** ✓ (you already have this correct)
+6. **"Include files outside the root directory in the Build Step"**: Keep **Enabled** ✓ (helps include necessary files)
+
+**Important**: After making any changes, click the **"Save"** button at the bottom of each section.
 
