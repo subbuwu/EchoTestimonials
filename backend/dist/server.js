@@ -35,7 +35,12 @@ app.get('/health', (_, res) => {
 app.use('/orgs', orgs_routes_1.default);
 app.use('/projects', projects_route_1.default);
 app.use('/testimonials', testimonials_route_1.default);
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-});
+// Export for Vercel serverless functions
+exports.default = app;
+// Only start server if not in Vercel environment
+if (process.env.VERCEL !== '1') {
+    const PORT = process.env.PORT || 8080;
+    app.listen(PORT, () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+    });
+}

@@ -7,7 +7,7 @@
 3. **`src/server.ts`** - Modified to export the Express app instead of calling `app.listen()`
 4. **`package.json`** - Added `module-alias` to dependencies and `_moduleAliases` configuration
 5. **`public/.gitkeep`** - Empty public directory required by Vercel
-6. **`tsconfig.json`** - Updated to include `api` directory
+6. **`tsconfig.json`** - Excludes `api` directory (Vercel compiles it separately)
 
 ## Environment Variables Required
 
@@ -34,4 +34,15 @@ The `module-alias` package reads the `_moduleAliases` configuration from `packag
 - **"Missing public directory"**: The `public/.gitkeep` file should resolve this
 - **Path alias errors**: The `module-alias/register` import in `api/index.ts` handles this
 - **Function crashes**: Check Vercel function logs for specific error messages
+- **TypeScript rootDir errors**: The `api` directory is excluded from TypeScript compilation since Vercel compiles it separately
+
+## Vercel Dashboard Settings
+
+In your Vercel project settings:
+
+1. **Root Directory**: Set to `backend`
+2. **Framework Preset**: Leave as "Other" or "None"
+3. **Build Command**: Leave empty (Vercel compiles serverless functions automatically)
+4. **Output Directory**: Leave empty (not needed for serverless functions)
+5. **Install Command**: `pnpm install` (or leave default)
 
