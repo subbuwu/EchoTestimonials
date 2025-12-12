@@ -5,9 +5,49 @@ import localFont from "next/font/local";
 import { Providers } from "@/providers";
 
 
+const siteUrl = process.env.NEXT_PUBLIC_FRONTEND_URL!
+
 export const metadata: Metadata = {
-  title: "EchoTestimonials",
-  description: "",
+  title: "EchoTestimonials - Free Testimonial Collection Platform",
+  description: "Collect and manage customer testimonials effortlessly. Create custom forms, embed anywhere, and build trust with authentic reviews. Free forever.",
+  keywords: ["testimonials", "reviews", "customer feedback", "testimonial forms", "embed forms"],
+  authors: [{ name: "EchoTestimonials" }],
+  creator: "EchoTestimonials",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: siteUrl,
+    siteName: "EchoTestimonials",
+    title: "EchoTestimonials - Free Testimonial Collection Platform",
+    description: "Collect and manage customer testimonials effortlessly. Create custom forms, embed anywhere, and build trust with authentic reviews.",
+    images: [
+      {
+        url: `${siteUrl}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: "EchoTestimonials - Free Testimonial Collection Platform",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "EchoTestimonials - Free Testimonial Collection Platform",
+    description: "Collect and manage customer testimonials effortlessly. Create custom forms, embed anywhere, and build trust with authentic reviews.",
+    images: [`${siteUrl}/og-image.png`],
+    creator: "@echotestimonials", // Update with your Twitter handle if you have one
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  metadataBase: new URL(siteUrl),
 };
 
 const monasans = localFont({
@@ -36,7 +76,6 @@ export default function RootLayout({
         className={`${monasans.variable} ${nohemiBold.variable} ${primary_regular.variable} antialiased bg-black`}
       >
         <ClerkProvider>
-
           <Providers>{children}</Providers>
         </ClerkProvider>
       </body>
