@@ -3,7 +3,8 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { FormConfig, FormField } from '@/types/FormConfig';
 import { api } from '@/lib/api';
-import { Star, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
+import { Star, CheckCircle2, Loader2, AlertCircle, Sparkles, ArrowRight } from 'lucide-react';
+import { getFrontendUrl } from '@/lib/utils';
 
 export default function EmbedTestimonialPage() {
   const { embedKey } = useParams<{ embedKey: string }>();
@@ -286,12 +287,18 @@ export default function EmbedTestimonialPage() {
         );
 
       case 'checkbox':
+        // Properly handle boolean value for checkbox
+        const checkboxValue = typeof rawValue === 'boolean' 
+          ? rawValue 
+          : typeof rawValue === 'string' 
+            ? rawValue === 'true' 
+            : false;
         return (
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="checkbox"
               id={field.id}
-              checked={!!value}
+              checked={checkboxValue}
               onChange={(e) => {
                 setFormData({ ...formData, [field.id]: e.target.checked });
                 if (fieldErrors[field.id]) {
@@ -299,7 +306,7 @@ export default function EmbedTestimonialPage() {
                 }
               }}
               required={field.required}
-              className="w-5 h-5 rounded border-gray-300 text-blue-600 text-black focus:ring-blue-500"
+              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
             />
             <span className="text-gray-700">{field.placeholder || 'I agree'}</span>
           </label>
@@ -379,64 +386,92 @@ export default function EmbedTestimonialPage() {
 
   const sortedFields = [...formConfig.fields].sort((a, b) => a.order - b.order);
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4">
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-xl shadow-xl p-8 md:p-10">
-          {formConfig?.title && (
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">{formConfig.title}</h1>
-          )}
-          {formConfig?.description && (
-            <p className="text-gray-600 mb-8 text-lg">{formConfig.description}</p>
-          )}
+  const frontendUrl = getFrontendUrl();
 
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+  return (
+    <div className="min-h-screen text-black bg-gray-100">
+      {/* Modern Banner */}
+      <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 text-white">
+        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Sparkles className="h-6 w-6 text-yellow-300 animate-pulse" />
               <div>
-                <p className="text-red-800 font-medium mb-1">Submission Error</p>
-                <p className="text-red-600 text-sm">{error}</p>
+                <h2 className="text-lg text-black font-bold">Create Your Own Testimonial Forms</h2>
+                <p className="text-sm text-black">Collect authentic feedback effortlessly</p>
               </div>
             </div>
-          )}
+            <a
+              href={frontendUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-white text-blue-700 rounded-lg font-semibold hover:bg-blue-50 transition-all text-black  transform hover:scale-105 shadow-lg hover:shadow-xl"
+            >
+              Get Started
+              <ArrowRight className="h-4 w-4" />
+            </a>
+          </div>
+        </div>
+      </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {sortedFields.map((field) => {
-              const hasError = !!fieldErrors[field.id];
-              return (
-                <div key={field.id} className="space-y-2">
-                  <label htmlFor={field.id} className="block text-sm font-semibold text-gray-700">
-                    {field.label}
-                    {field.required && <span className="text-red-500 ml-1">*</span>}
-                  </label>
-                  {renderField(field)}
-                  {hasError && (
-                    <p className="text-sm text-red-600 flex items-center gap-1">
-                      <AlertCircle className="h-4 w-4" />
-                      {fieldErrors[field.id]}
-                    </p>
-                  )}
+      <div className="py-12 px-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-white rounded-xl shadow-xl p-8 md:p-10">
+            {formConfig?.title && (
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">{formConfig.title}</h1>
+            )}
+            {formConfig?.description && (
+              <p className="text-gray-600 mb-8 text-lg">{formConfig.description}</p>
+            )}
+
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-red-800 font-medium mb-1">Submission Error</p>
+                  <p className="text-red-600 text-sm">{error}</p>
                 </div>
-              );
-            })}
+              </div>
+            )}
 
-            <div className="pt-4">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full bg-primary hover:bg-primary/90 text-black font-semibold py-4 px-6 rounded-lg transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 shadow-lg"
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  formConfig?.submitButtonText || 'Submit Testimonial'
-                )}
-              </button>
-            </div>
-          </form>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {sortedFields.map((field) => {
+                const hasError = !!fieldErrors[field.id];
+                return (
+                  <div key={field.id} className="space-y-2">
+                    <label htmlFor={field.id} className="block text-sm font-semibold text-gray-700">
+                      {field.label}
+                      {field.required && <span className="text-red-500 ml-1">*</span>}
+                    </label>
+                    {renderField(field)}
+                    {hasError && (
+                      <p className="text-sm text-red-600 flex items-center gap-1">
+                        <AlertCircle className="h-4 w-4" />
+                        {fieldErrors[field.id]}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+
+              <div className="pt-4">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full bg-primary hover:bg-primary/90 text-black font-semibold py-4 px-6 rounded-lg transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 shadow-lg"
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    formConfig?.submitButtonText || 'Submit Testimonial'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>

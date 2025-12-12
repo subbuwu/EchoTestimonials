@@ -1,5 +1,6 @@
 'use client';
 import { Testimonial } from '@/types/Testimonials';
+import { FormConfig } from '@/types/FormConfig';
 import { Star, Calendar, Mail, Building2, Briefcase, MessageSquare, ChevronDown, ChevronUp, FileText, Eye, EyeOff } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { useState, useEffect, useMemo } from 'react';
@@ -35,37 +36,84 @@ export function SubmissionsView({ testimonials, isLoading }: SubmissionsViewProp
   // Auto-expand all groups by default
   const [initialized, setInitialized] = useState(false);
   
-  // Filter testimonials that have actual submissions (not just form templates)
-  const submissions = useMemo(() => {
-    return testimonials.filter(
-      (t) => t.name && t.name !== 'Untitled Testimonial' && t.testimonial
-    );
+  // Extended type for API response that may include additional fields
+  type TestimonialWithExtras = Testimonial & {
+    testimonialId?: string; // May come from API for submissions
+  };
+
+  // Separate forms and submissions
+  const forms = useMemo(() => {
+    return testimonials.filter((t): t is Testimonial => t.isForm === true);
   }, [testimonials]);
 
-  // Group submissions by testimonial form (each testimonial is a form)
-  // Since each testimonial record represents both the form and its submission,
-  // we group by the testimonial ID itself
+  const submissions = useMemo(() => {
+    // Simple filter: exclude ONLY items explicitly marked as isForm: true
+    // Include everything else as submissions (no other filtering)
+    const filtered = testimonials.filter((t): t is TestimonialWithExtras => t.isForm !== true);
+    
+    // Debug: Log to verify all submissions are included
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Submissions filter:', {
+        total: testimonials.length,
+        filtered: filtered.length,
+        items: filtered.map(s => ({
+          id: s.id,
+          name: s.name,
+          testimonialFormId: s.testimonialFormId,
+          testimonialId: s.testimonialId
+        }))
+      });
+    }
+    
+    return filtered;
+  }, [testimonials]);
+
+  // Group submissions by testimonial form
   const groupedSubmissions = useMemo(() => {
     const groups: GroupedSubmissions[] = [];
-    const formMap = new Map<string, Testimonial[]>();
+    const formMap = new Map<string, TestimonialWithExtras[]>();
+    const formConfigMap = new Map<string, FormConfig | null>(); // Store form configs by form ID
+
+    // Create a map of form configs by form ID
+    forms.forEach((form) => {
+      formConfigMap.set(form.id, form.formConfig);
+    });
 
     submissions.forEach((submission) => {
-      // Each testimonial is its own form, so we group by ID
-      const formId = submission.id;
+      // Get the form ID from testimonialFormId or testimonialId (database field name)
+      // Both should point to the parent form
+      let formId = submission.testimonialFormId || submission.testimonialId;
       
+      // If no form ID, try to find the form by embedKey match
+      if (!formId) {
+        const matchingForm = forms.find(f => f.embedKey === submission.embedKey);
+        if (matchingForm) {
+          formId = matchingForm.id;
+        } else {
+          // If still no form ID, skip this submission (shouldn't happen in normal flow)
+          console.warn('Submission without form ID or matching form:', submission.id);
+          return;
+        }
+      }
+      
+      // Ensure the form ID exists in the map
       if (!formMap.has(formId)) {
         formMap.set(formId, []);
       }
+      
+      // Add submission to the group
       formMap.get(formId)!.push(submission);
     });
 
     // Convert map to array and create grouped structure
     formMap.forEach((subs, formId) => {
       const submission = subs[0];
+      const formConfig = formConfigMap.get(formId) || submission.formConfig;
+      
       groups.push({
         formId,
-        formTitle: submission.formConfig?.title || 'Untitled Form',
-        formConfig: submission.formConfig,
+        formTitle: formConfig?.title || 'Untitled Form',
+        formConfig: formConfig,
         submissions: subs,
       });
     });
@@ -78,7 +126,7 @@ export function SubmissionsView({ testimonials, isLoading }: SubmissionsViewProp
     });
 
     return groups;
-  }, [submissions]);
+  }, [submissions, forms]);
 
   // Auto-expand all groups on first render
   useEffect(() => {
@@ -416,19 +464,25 @@ export function SubmissionsView({ testimonials, isLoading }: SubmissionsViewProp
                       }
                     }}
                     disabled={!selectedSubmission || togglingIds.has(selectedSubmission.id)}
-                    className={`p-2 rounded-lg border transition-colors ${
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors flex items-center gap-1.5 ${
                       selectedSubmission?.isPublished
-                        ? 'bg-green-500/20 border-green-500/30 text-green-400 hover:bg-green-500/30'
-                        : 'bg-muted/20 border-muted/30 text-muted-foreground hover:bg-muted/30'
+                        ? 'bg-green-500/10 border-green-500/30 text-green-400 hover:bg-green-500/20'
+                        : 'bg-gray-800/50 border-gray-700/50 text-gray-400 hover:bg-gray-800 hover:text-gray-300'
                     } disabled:opacity-50 disabled:cursor-not-allowed`}
-                    title={selectedSubmission?.isPublished ? 'Unpublish' : 'Publish'}
+                    title={selectedSubmission?.isPublished ? 'Mark as draft (hide from public)' : 'Approve and publish (show publicly)'}
                   >
                     {selectedSubmission && togglingIds.has(selectedSubmission.id) ? (
-                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
                     ) : selectedSubmission?.isPublished ? (
-                      <EyeOff className="h-4 w-4" />
+                      <>
+                        <EyeOff className="h-3.5 w-3.5" />
+                        <span>Approved</span>
+                      </>
                     ) : (
-                      <Eye className="h-4 w-4" />
+                      <>
+                        <Eye className="h-3.5 w-3.5" />
+                        <span>Draft</span>
+                      </>
                     )}
                   </button>
                   {selectedSubmission.isPublished ? (

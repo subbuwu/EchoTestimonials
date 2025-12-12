@@ -64,11 +64,16 @@ router.get('/:id', (0, express_1.requireAuth)(), async (req, res) => {
     try {
         const clerkId = getClerkId(req);
         const { id } = req.params;
-        const testimonial = await (0, testimonials_controller_1.getTestimonialById)(id, clerkId);
-        if (!testimonial) {
+        // Try to get as testimonial form first
+        let result = await (0, testimonials_controller_1.getTestimonialById)(id, clerkId);
+        // If not found, try as submission
+        if (!result) {
+            result = await (0, testimonials_controller_1.getSubmissionById)(id, clerkId);
+        }
+        if (!result) {
             return res.status(404).json({ error: 'Testimonial not found or you don\'t have access to it' });
         }
-        res.json(testimonial);
+        res.json(result);
     }
     catch (error) {
         console.error('Error fetching testimonial:', error);
@@ -80,28 +85,60 @@ router.put('/:id', (0, express_1.requireAuth)(), async (req, res) => {
         const clerkId = getClerkId(req);
         const { id } = req.params;
         const { name, email, company, role, imageUrl, rating, testimonial, customFields, isPublished, formConfig } = req.body;
-        // Sanitize inputs if provided
-        const sanitizedName = name ? (0, validation_1.sanitizeText)(name) : undefined;
-        const sanitizedEmail = email !== undefined ? (email ? (0, validation_1.sanitizeText)(email) : undefined) : undefined;
-        const sanitizedCompany = company !== undefined ? (company ? (0, validation_1.sanitizeText)(company) : undefined) : undefined;
-        const sanitizedRole = role !== undefined ? (role ? (0, validation_1.sanitizeText)(role) : undefined) : undefined;
-        const sanitizedImageUrl = imageUrl !== undefined ? (imageUrl ? (0, validation_1.sanitizeText)(imageUrl) : undefined) : undefined;
-        const sanitizedTestimonial = testimonial ? (0, validation_1.sanitizeText)(testimonial) : undefined;
-        // Validate if testimonial is being updated
-        if (testimonial !== undefined && sanitizedTestimonial && sanitizedTestimonial.length === 0) {
-            return res.status(400).json({ error: 'Testimonial cannot be empty' });
+        // Check if it's a form or submission by trying to get it first
+        const existingForm = await (0, testimonials_controller_1.getTestimonialById)(id, clerkId);
+        const existingSubmission = existingForm ? null : await (0, testimonials_controller_1.getSubmissionById)(id, clerkId);
+        let updated;
+        if (existingForm) {
+            // Update testimonial form
+            const sanitizedName = name ? (0, validation_1.sanitizeText)(name) : undefined;
+            const sanitizedEmail = email !== undefined ? (email ? (0, validation_1.sanitizeText)(email) : undefined) : undefined;
+            const sanitizedCompany = company !== undefined ? (company ? (0, validation_1.sanitizeText)(company) : undefined) : undefined;
+            const sanitizedRole = role !== undefined ? (role ? (0, validation_1.sanitizeText)(role) : undefined) : undefined;
+            const sanitizedImageUrl = imageUrl !== undefined ? (imageUrl ? (0, validation_1.sanitizeText)(imageUrl) : undefined) : undefined;
+            const sanitizedTestimonial = testimonial ? (0, validation_1.sanitizeText)(testimonial) : undefined;
+            // Validate if testimonial is being updated
+            if (testimonial !== undefined && sanitizedTestimonial && sanitizedTestimonial.length === 0) {
+                return res.status(400).json({ error: 'Testimonial cannot be empty' });
+            }
+            updated = await (0, testimonials_controller_1.updateTestimonial)(id, clerkId, {
+                name: sanitizedName,
+                email: sanitizedEmail,
+                company: sanitizedCompany,
+                role: sanitizedRole,
+                imageUrl: sanitizedImageUrl,
+                rating,
+                testimonial: sanitizedTestimonial,
+                customFields,
+                isPublished,
+            }, formConfig);
         }
-        const updated = await (0, testimonials_controller_1.updateTestimonial)(id, clerkId, {
-            name: sanitizedName,
-            email: sanitizedEmail,
-            company: sanitizedCompany,
-            role: sanitizedRole,
-            imageUrl: sanitizedImageUrl,
-            rating,
-            testimonial: sanitizedTestimonial,
-            customFields,
-            isPublished,
-        }, formConfig);
+        else if (existingSubmission) {
+            // Update submission (only allow isPublished and content updates, not formConfig)
+            const sanitizedName = name ? (0, validation_1.sanitizeText)(name) : undefined;
+            const sanitizedEmail = email !== undefined ? (email ? (0, validation_1.sanitizeText)(email) : undefined) : undefined;
+            const sanitizedCompany = company !== undefined ? (company ? (0, validation_1.sanitizeText)(company) : undefined) : undefined;
+            const sanitizedRole = role !== undefined ? (role ? (0, validation_1.sanitizeText)(role) : undefined) : undefined;
+            const sanitizedImageUrl = imageUrl !== undefined ? (imageUrl ? (0, validation_1.sanitizeText)(imageUrl) : undefined) : undefined;
+            const sanitizedTestimonial = testimonial ? (0, validation_1.sanitizeText)(testimonial) : undefined;
+            if (testimonial !== undefined && sanitizedTestimonial && sanitizedTestimonial.length === 0) {
+                return res.status(400).json({ error: 'Testimonial cannot be empty' });
+            }
+            updated = await (0, testimonials_controller_1.updateSubmission)(id, clerkId, {
+                name: sanitizedName,
+                email: sanitizedEmail,
+                company: sanitizedCompany,
+                role: sanitizedRole,
+                imageUrl: sanitizedImageUrl,
+                rating,
+                testimonial: sanitizedTestimonial,
+                customFields,
+                isPublished,
+            });
+        }
+        else {
+            return res.status(404).json({ error: 'Testimonial not found or you don\'t have access to it' });
+        }
         if (!updated) {
             return res.status(404).json({ error: 'Testimonial not found or you don\'t have access to it' });
         }
@@ -116,8 +153,11 @@ router.delete('/:id', (0, express_1.requireAuth)(), async (req, res) => {
     try {
         const clerkId = getClerkId(req);
         const { id } = req.params;
-        const deleted = await (0, testimonials_controller_1.deleteTestimonial)(id, clerkId);
-        if (!deleted) {
+        // Try to delete as testimonial form first
+        const deletedForm = await (0, testimonials_controller_1.deleteTestimonial)(id, clerkId);
+        // If not found, try as submission
+        const deletedSubmission = deletedForm ? null : await (0, testimonials_controller_1.deleteSubmission)(id, clerkId);
+        if (!deletedForm && !deletedSubmission) {
             return res.status(404).json({ error: 'Testimonial not found or you don\'t have access to it' });
         }
         res.json({ message: 'Testimonial deleted successfully' });

@@ -29,7 +29,7 @@ import {
   FileText,
   Users,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -62,6 +62,15 @@ export default function ProjectDetailPage() {
     },
     enabled: !!id,
   });
+
+  // Separate forms and submissions
+  const forms = useMemo(() => {
+    return testimonials?.filter((t): t is Testimonial => t.isForm === true) || [];
+  }, [testimonials]);
+
+  const submissions = useMemo(() => {
+    return testimonials?.filter((t): t is Testimonial => t.isForm !== true) || [];
+  }, [testimonials]);
 
   const copyToClipboard = async (text: string, id?: string) => {
     try {
@@ -249,7 +258,7 @@ export default function ProjectDetailPage() {
               >
                 <div className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
-                  Forms ({testimonials?.length || 0})
+                  Forms ({forms.length})
                 </div>
               </button>
               <button
@@ -262,7 +271,7 @@ export default function ProjectDetailPage() {
               >
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  Submissions ({testimonials?.filter(t => t.name && t.name !== 'Untitled Testimonial' && t.testimonial).length || 0})
+                  Submissions ({submissions.length})
                 </div>
               </button>
             </div>
@@ -287,9 +296,9 @@ export default function ProjectDetailPage() {
               <div key={i} className="h-48 bg-eerie animate-pulse rounded-lg"></div>
             ))}
           </div>
-        ) : testimonials && testimonials.length > 0 ? (
+        ) : forms && forms.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {testimonials.map((testimonial) => {
+            {forms.map((testimonial) => {
               const embedUrl = getEmbedUrl(testimonial.embedKey);
               const embedCode = getEmbedCode(testimonial.embedKey);
               
@@ -337,19 +346,19 @@ export default function ProjectDetailPage() {
                       <button
                         onClick={() => handleTogglePublish(testimonial)}
                         disabled={togglingIds.has(testimonial.id)}
-                        className={`p-2 rounded-lg border transition-colors ${
+                        className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${
                           testimonial.isPublished
-                            ? 'bg-green-500/20 border-green-500/30 text-green-400 hover:bg-green-500/30'
-                            : 'bg-muted/20 border-muted/30 text-muted-foreground hover:bg-muted/30'
+                            ? 'bg-green-500/10 border-green-500/30 text-green-400 hover:bg-green-500/20'
+                            : 'bg-gray-800/50 border-gray-700/50 text-gray-400 hover:bg-gray-800 hover:text-gray-300'
                         } disabled:opacity-50 disabled:cursor-not-allowed`}
-                        title={testimonial.isPublished ? 'Unpublish' : 'Publish'}
+                        title={testimonial.isPublished ? 'Mark as draft (hide from public)' : 'Approve and publish (show publicly)'}
                       >
                         {togglingIds.has(testimonial.id) ? (
-                          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                          <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
                         ) : testimonial.isPublished ? (
-                          <p className="text-green-400">Unpublish</p>
+                          'Approved'
                         ) : (
-                          <p className="text-muted-foreground">Publish</p>
+                          'Draft'
                         )}
                       </button>
                       <button
@@ -496,8 +505,12 @@ export default function ProjectDetailPage() {
             <h3 className="text-lg font-semibold text-foreground mb-4">Statistics</h3>
             <div className="space-y-4">
               <div className="text-center p-4 bg-eerie rounded-lg">
-                <div className="text-2xl font-bold text-flavescent">{testimonials?.length || 0}</div>
+                <div className="text-2xl font-bold text-flavescent">{forms.length}</div>
                 <div className="text-sm text-muted-foreground">Testimonial Forms</div>
+              </div>
+              <div className="text-center p-4 bg-eerie rounded-lg">
+                <div className="text-2xl font-bold text-blue">{submissions.length}</div>
+                <div className="text-sm text-muted-foreground">Submissions</div>
               </div>
             </div>
           </div>

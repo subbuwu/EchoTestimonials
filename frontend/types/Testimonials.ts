@@ -16,6 +16,9 @@ export interface Testimonial {
   isPublished: boolean;
   createdAt: string;
   updatedAt: string;
+  // Optional fields for distinguishing forms from submissions
+  isForm?: boolean; // true for testimonial forms, false/undefined for submissions
+  testimonialFormId?: string; // ID of the parent form (for submissions only)
 }
 
 export interface CreateTestimonialRequest {

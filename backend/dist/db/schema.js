@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.testimonials = exports.projects = exports.orgMembers = exports.orgs = exports.users = exports.roleEnum = void 0;
+exports.testimonialSubmissions = exports.testimonials = exports.projects = exports.orgMembers = exports.orgs = exports.users = exports.roleEnum = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 exports.roleEnum = (0, pg_core_1.pgEnum)("role", ["owner", "admin", "member"]);
 exports.users = (0, pg_core_1.pgTable)("users", {
@@ -37,6 +37,23 @@ exports.testimonials = (0, pg_core_1.pgTable)("testimonials", {
     projectId: (0, pg_core_1.uuid)("project_id").notNull().references(() => exports.projects.id, { onDelete: "cascade" }),
     embedKey: (0, pg_core_1.varchar)("embed_key", { length: 64 }).notNull().unique(), // Unique embed key for each testimonial form
     formConfig: (0, pg_core_1.text)("form_config"), // JSON string for form field configuration
+    name: (0, pg_core_1.text)("name").notNull(), // Default name for the form (can be "Untitled Testimonial")
+    email: (0, pg_core_1.text)("email"),
+    company: (0, pg_core_1.text)("company"),
+    role: (0, pg_core_1.text)("role"),
+    imageUrl: (0, pg_core_1.text)("image_url"),
+    rating: (0, pg_core_1.text)("rating"), // Can be "1" to "5" or null
+    testimonial: (0, pg_core_1.text)("testimonial").notNull(), // Default testimonial text (can be empty placeholder)
+    customFields: (0, pg_core_1.text)("custom_fields"), // JSON string for flexible fields
+    isPublished: (0, pg_core_1.text)("is_published").default("false").notNull(), // "true" or "false"
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
+});
+// Separate table for testimonial submissions (multiple submissions per form)
+exports.testimonialSubmissions = (0, pg_core_1.pgTable)("testimonial_submissions", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    testimonialId: (0, pg_core_1.uuid)("testimonial_id").notNull().references(() => exports.testimonials.id, { onDelete: "cascade" }),
+    projectId: (0, pg_core_1.uuid)("project_id").notNull().references(() => exports.projects.id, { onDelete: "cascade" }),
     name: (0, pg_core_1.text)("name").notNull(),
     email: (0, pg_core_1.text)("email"),
     company: (0, pg_core_1.text)("company"),

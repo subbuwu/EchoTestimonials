@@ -15,7 +15,6 @@ import {
   Search,
   Filter,
   Folder,
-  Clock,
   Grid3X3,
   List,
   ArrowUpRight,
@@ -332,109 +331,85 @@ export default function DashboardPage() {
         <div className="flex-1 overflow-y-auto p-6 bg-eerie">
           {filteredOrgs.length > 0 ? (
             <div className={viewMode === 'grid' 
-              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" 
-              : "space-y-4"
+              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" 
+              : "space-y-3"
             }>
               {filteredOrgs.map((org) => (
                 <div
                   key={org.id}
                   onClick={() => router.push(`/dashboard/orgs/${org.slug}`)}
                   className={`
-                    group bg-raisin border border-onyx rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:border-gray-700 hover:shadow-2xl hover:shadow-blue-500/10 hover:-translate-y-1
+                    group relative bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 border border-gray-700/50 rounded-xl p-5 cursor-pointer 
+                    transition-all duration-200 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/5
                     ${selectedOrg?.id === org.id 
-                      ? 'border-blue-500 ring-2 ring-blue-500/20 shadow-lg shadow-blue-500/20' 
+                      ? 'border-blue-500/50 ring-1 ring-blue-500/20' 
                       : ''
                     }
-                    ${viewMode === 'list' ? 'flex items-center gap-6' : ''}
+                    ${viewMode === 'list' ? 'flex items-center gap-4' : ''}
                   `}
                 >
-                  {/* Organization Icon and Header */}
-                  <div className={`flex items-center ${viewMode === 'list' ? 'gap-4' : 'justify-between mb-4'}`}>
-                    <div className="relative">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 rounded-2xl flex items-center justify-center shadow-lg">
-                        <Building2 className="h-6 w-6 text-white" />
+                  {/* Organization Icon */}
+                  <div className={`flex items-start ${viewMode === 'list' ? 'gap-4' : 'gap-3 mb-3'}`}>
+                    <div className="relative flex-shrink-0">
+                      <div className="w-11 h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
+                        <Building2 className="h-5 w-5 text-white" />
                       </div>
+                      {org.role === 'owner' && (
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center">
+                          <Crown className="h-2.5 w-2.5 text-white" />
+                        </div>
+                      )}
                     </div>
                     
-                    {viewMode === 'grid' && (
-                      <div className="flex gap-2">
-                        <div className={`px-2 py-1 rounded-lg border text-xs font-medium flex items-center gap-1 ${getRoleColor(org.role)}`}>
-                          {getRoleIcon(org.role)}
-                          {org.role}
+                    {/* Organization Info */}
+                    <div className={`flex-1 min-w-0 ${viewMode === 'list' ? '' : ''}`}>
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <h3 className="text-base font-semibold text-white truncate">
+                          {org.name}
+                        </h3>
+                        {viewMode === 'grid' && (
+                          <div className={`px-2 py-0.5 rounded-md text-xs font-medium flex items-center gap-1 flex-shrink-0 ${getRoleColor(org.role)}`}>
+                            {getRoleIcon(org.role)}
+                            <span className="capitalize">{org.role}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                        <span>@{org.slug}</span>
+                        {org.createdAt && (
+                          <span className="text-gray-600">•</span>
+                        )}
+                        {org.createdAt && (
+                          <span className="text-gray-500">{formatDate(org.createdAt)}</span>
+                        )}
+                      </div>
+                      
+                      {/* Stats */}
+                      <div className={`flex items-center gap-4 text-xs text-gray-400 ${viewMode === 'list' ? '' : 'mt-2'}`}>
+                        <div className="flex items-center gap-1.5">
+                          <Users className="h-3.5 w-3.5" />
+                          <span>{org.memberCount ?? 0}</span>
                         </div>
+                        <div className="flex items-center gap-1.5">
+                          <Folder className="h-3.5 w-3.5" />
+                          <span>{org.projectCount ?? 0}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* List view role badge */}
+                    {viewMode === 'list' && (
+                      <div className={`px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 flex-shrink-0 ${getRoleColor(org.role)}`}>
+                        {getRoleIcon(org.role)}
+                        <span className="capitalize">{org.role}</span>
                       </div>
                     )}
                   </div>
 
-                  {/* Organization Info */}
-                  <div className={`${viewMode === 'list' ? 'flex-1' : 'mb-4'}`}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="text-lg font-semibold text-white truncate">
-                        {org.name}
-                      </h3>
-                    </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-400">
-                      <span>@{org.slug}</span>
-                      {org.createdAt && (
-                        <span className="px-2 py-0.5 bg-gray-800 rounded-full text-xs">
-                          {formatDate(org.createdAt)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {viewMode === 'list' && (
-                    <div className={`px-2 py-1 rounded-lg border text-xs font-medium flex items-center gap-1 ${getRoleColor(org.role)}`}>
-                      {getRoleIcon(org.role)}
-                      {org.role}
-                    </div>
-                  )}
-
-                  {/* Enhanced Stats */}
+                  {/* Hover arrow indicator */}
                   {viewMode === 'grid' && (
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div className="flex items-center gap-2 text-gray-400">
-                          <Users className="h-4 w-4" />
-                          <span>{org.memberCount ?? 0} members</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-gray-400">
-                          <Folder className="h-4 w-4" />
-                          <span>{org.projectCount ?? 0} projects</span>
-                        </div>
-                      </div>
-                      
-                      {org.createdAt && (
-                        <div className="flex items-center justify-between pt-3 border-t border-gray-800">
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-3 w-3 text-gray-400" />
-                            <span className="text-xs text-gray-400">
-                              Created {formatDate(org.createdAt)}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* List view stats */}
-                  {viewMode === 'list' && (
-                    <div className="flex items-center gap-6 text-sm text-gray-400">
-                      <div className="flex items-center gap-1">
-                        <Users className="h-4 w-4" />
-                        <span>{org.memberCount ?? 0}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Folder className="h-4 w-4" />
-                        <span>{org.projectCount ?? 0}</span>
-                      </div>
-                      {org.createdAt && (
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          <span>{formatDate(org.createdAt)}</span>
-                        </div>
-                      )}
-                      <ArrowUpRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <ArrowUpRight className="h-4 w-4 text-gray-400" />
                     </div>
                   )}
                 </div>

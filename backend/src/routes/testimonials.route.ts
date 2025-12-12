@@ -6,6 +6,9 @@ import {
   getTestimonialByEmbedKey,
   updateTestimonial,
   deleteTestimonial,
+  getSubmissionById,
+  updateSubmission,
+  deleteSubmission,
 } from '@/controllers/testimonials.controller';
 import { validateTestimonialSubmission, sanitizeText } from '@/utils/validation';
 import { getAuth, requireAuth } from '@clerk/express';
@@ -78,13 +81,20 @@ router.get('/:id', requireAuth(), async (req, res) => {
   try {
     const clerkId = getClerkId(req);
     const { id } = req.params;
-    const testimonial = await getTestimonialById(id, clerkId);
+    
+    // Try to get as testimonial form first
+    let result = await getTestimonialById(id, clerkId);
+    
+    // If not found, try as submission
+    if (!result) {
+      result = await getSubmissionById(id, clerkId);
+    }
 
-    if (!testimonial) {
+    if (!result) {
       return res.status(404).json({ error: 'Testimonial not found or you don\'t have access to it' });
     }
 
-    res.json(testimonial);
+    res.json(result);
   } catch (error) {
     console.error('Error fetching testimonial:', error);
     res.status(500).json({ error: 'Failed to fetch testimonial' });
@@ -97,30 +107,64 @@ router.put('/:id', requireAuth(), async (req, res) => {
     const { id } = req.params;
     const { name, email, company, role, imageUrl, rating, testimonial, customFields, isPublished, formConfig } = req.body;
 
-    // Sanitize inputs if provided
-    const sanitizedName = name ? sanitizeText(name) : undefined;
-    const sanitizedEmail = email !== undefined ? (email ? sanitizeText(email) : undefined) : undefined;
-    const sanitizedCompany = company !== undefined ? (company ? sanitizeText(company) : undefined) : undefined;
-    const sanitizedRole = role !== undefined ? (role ? sanitizeText(role) : undefined) : undefined;
-    const sanitizedImageUrl = imageUrl !== undefined ? (imageUrl ? sanitizeText(imageUrl) : undefined) : undefined;
-    const sanitizedTestimonial = testimonial ? sanitizeText(testimonial) : undefined;
+    // Check if it's a form or submission by trying to get it first
+    const existingForm = await getTestimonialById(id, clerkId);
+    const existingSubmission = existingForm ? null : await getSubmissionById(id, clerkId);
 
-    // Validate if testimonial is being updated
-    if (testimonial !== undefined && sanitizedTestimonial && sanitizedTestimonial.length === 0) {
-      return res.status(400).json({ error: 'Testimonial cannot be empty' });
+    let updated;
+
+    if (existingForm) {
+      // Update testimonial form
+      const sanitizedName = name ? sanitizeText(name) : undefined;
+      const sanitizedEmail = email !== undefined ? (email ? sanitizeText(email) : undefined) : undefined;
+      const sanitizedCompany = company !== undefined ? (company ? sanitizeText(company) : undefined) : undefined;
+      const sanitizedRole = role !== undefined ? (role ? sanitizeText(role) : undefined) : undefined;
+      const sanitizedImageUrl = imageUrl !== undefined ? (imageUrl ? sanitizeText(imageUrl) : undefined) : undefined;
+      const sanitizedTestimonial = testimonial ? sanitizeText(testimonial) : undefined;
+
+      // Validate if testimonial is being updated
+      if (testimonial !== undefined && sanitizedTestimonial && sanitizedTestimonial.length === 0) {
+        return res.status(400).json({ error: 'Testimonial cannot be empty' });
+      }
+
+      updated = await updateTestimonial(id, clerkId, {
+        name: sanitizedName,
+        email: sanitizedEmail,
+        company: sanitizedCompany,
+        role: sanitizedRole,
+        imageUrl: sanitizedImageUrl,
+        rating,
+        testimonial: sanitizedTestimonial,
+        customFields,
+        isPublished,
+      }, formConfig);
+    } else if (existingSubmission) {
+      // Update submission (only allow isPublished and content updates, not formConfig)
+      const sanitizedName = name ? sanitizeText(name) : undefined;
+      const sanitizedEmail = email !== undefined ? (email ? sanitizeText(email) : undefined) : undefined;
+      const sanitizedCompany = company !== undefined ? (company ? sanitizeText(company) : undefined) : undefined;
+      const sanitizedRole = role !== undefined ? (role ? sanitizeText(role) : undefined) : undefined;
+      const sanitizedImageUrl = imageUrl !== undefined ? (imageUrl ? sanitizeText(imageUrl) : undefined) : undefined;
+      const sanitizedTestimonial = testimonial ? sanitizeText(testimonial) : undefined;
+
+      if (testimonial !== undefined && sanitizedTestimonial && sanitizedTestimonial.length === 0) {
+        return res.status(400).json({ error: 'Testimonial cannot be empty' });
+      }
+
+      updated = await updateSubmission(id, clerkId, {
+        name: sanitizedName,
+        email: sanitizedEmail,
+        company: sanitizedCompany,
+        role: sanitizedRole,
+        imageUrl: sanitizedImageUrl,
+        rating,
+        testimonial: sanitizedTestimonial,
+        customFields,
+        isPublished,
+      });
+    } else {
+      return res.status(404).json({ error: 'Testimonial not found or you don\'t have access to it' });
     }
-
-    const updated = await updateTestimonial(id, clerkId, {
-      name: sanitizedName,
-      email: sanitizedEmail,
-      company: sanitizedCompany,
-      role: sanitizedRole,
-      imageUrl: sanitizedImageUrl,
-      rating,
-      testimonial: sanitizedTestimonial,
-      customFields,
-      isPublished,
-    }, formConfig);
 
     if (!updated) {
       return res.status(404).json({ error: 'Testimonial not found or you don\'t have access to it' });
@@ -137,9 +181,14 @@ router.delete('/:id', requireAuth(), async (req, res) => {
   try {
     const clerkId = getClerkId(req);
     const { id } = req.params;
-    const deleted = await deleteTestimonial(id, clerkId);
+    
+    // Try to delete as testimonial form first
+    const deletedForm = await deleteTestimonial(id, clerkId);
+    
+    // If not found, try as submission
+    const deletedSubmission = deletedForm ? null : await deleteSubmission(id, clerkId);
 
-    if (!deleted) {
+    if (!deletedForm && !deletedSubmission) {
       return res.status(404).json({ error: 'Testimonial not found or you don\'t have access to it' });
     }
 

@@ -8,12 +8,13 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import UserMenu from "./UserMenu";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 
 const Sidebar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
   const menuItems: Array<{
     icon: React.ComponentType<{ className?: string }>;
@@ -65,10 +66,15 @@ const Sidebar = () => {
             return (
               <button
                 key={index}
+                onClick={() => {
+                  router.push(item.path);
+                  setSidebarOpen(false);
+                }}
                 className={`
-                  w-10 h-10 rounded-xl mb-2 flex items-center justify-center
+                  w-10 h-10 rounded-xl mb-2 flex items-center justify-center transition-colors
                   ${isActive ? "bg-[#7361dc] text-white" : "hover:bg-blue hover:text-primary-foreground" }
                 `}
+                title={item.label}
               >
                 <IconComponent className="h-5 w-5" />
                 {/* Tooltip-like label for desktop */}
